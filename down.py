@@ -27,6 +27,7 @@
 import os
 import hid
 import sys
+import time
 
 READ_IMAGE_START_CMD = 0
 FM_VERSION = 1
@@ -78,13 +79,20 @@ FT_MSG_SIZE_FLASH = 0x40
 HID_BUF = 63
 
 def WriteHid(dev, txBuffer):
-    outbuffer = bytearray(65)
-    outbuffer[1:1+len(txBuffer)+1] = txBuffer
+    # outbuffer = bytearray(65)
+    # # print(len(outbuffer))
+    # outbuffer[1:1+len(txBuffer)] = txBuffer
+    # # print(len(outbuffer))
+    outbuffer = bytearray(64)
+    outbuffer[:len(txBuffer)] = txBuffer
+    print('TX: ', ''.join(['{:02X} '.format(i) for i in outbuffer]))
     return dev.write(outbuffer)
 
 def ReadHid(dev, cnt=FT_MSG_SIZE_FLASH, timeout=1000):
-    outbuf = dev.read(65, timeout)
-    return outbuf[1:cnt+1]
+    outbuf = dev.read(64, timeout)
+    print('RX: ', ''.join(['{:02X} '.format(i) for i in outbuf]))
+    # return outbuf[1:cnt+1]
+    return outbuf[:cnt]
 
 def Wait_Busy_Down(dev):
     while True:
@@ -96,6 +104,7 @@ def Wait_Busy_Down(dev):
         out_buf = ReadHid(dev, 1)
         if not (out_buf[0] & 0x01):
             break
+        time.sleep(0.1)
 
 
 # 1.
@@ -126,6 +135,7 @@ def SetVccVppLoadStatu(dev):
 # 3. 
 def CHIP_EXTERN_Reset(dev):
     chip_id = Read_ID(dev)
+    print('chip_id', chip_id)
 
     # for default chip id
     CHIP_ENABLE_Command(dev)
@@ -133,6 +143,15 @@ def CHIP_EXTERN_Reset(dev):
     send_buf[0] = 0x00
     Statu_Write(dev, SPI_STATU_WR_LOW_CMD, send_buf)
 
+def CHIP_EXTERN_End(dev):
+    chip_id = Read_ID(dev)
+    print('chip_id', chip_id)
+
+    # for default chip id
+    CHIP_ENABLE_Command(dev)
+    send_buf = bytearray(1)
+    send_buf[0] = 0x3c
+    Statu_Write(dev, SPI_STATU_WR_LOW_CMD, send_buf)
 
 # 3.
 def Read_ID(dev):
@@ -150,7 +169,7 @@ def CHIP_ENABLE_Command(dev):
     send_buf[0] = WRITE_COMMAND_CMD
     send_buf[1] = SPI_CHIP_ENABLE_CMD
     WriteHid(dev, send_buf)
-    out_buf = ReadHid(dev, 3)
+    # out_buf = ReadHid(dev, 3)
     # return out_buf
     Wait_Busy_Down(dev)
 
@@ -172,12 +191,13 @@ def CHIP_EXTERN_Erase(dev):
     WriteHid(dev, send_buf)
     Wait_Busy_Down(dev)
 
-
 def DownImage(dev, filename):
     CHIP_EXTERN_Reset(dev)
-    CHIP_EXTERN_Erase(dev)
+    CHIP_ENABLE_Command(dev)
+    CHIP_EXTERN_Erase(dev)  # 04 C7
     WriteImage(dev, filename)
-    # DownloadStatu(dev)
+    CHIP_EXTERN_End(dev)
+    FlashLoadFinish(dev)
 
 def FlashLoadStanby(dev, cmd, size):
     send_buf = bytearray(FT_MSG_SIZE_FLASH)
@@ -209,6 +229,7 @@ def DownloadImageData(dev, filename):
     f = open(filename, "rb")
     while i < total_num:
         DevWriteImage(dev, f, HID_BUF)
+        i += 1
     f.close()
 
 
@@ -217,7 +238,7 @@ def WriteImage(dev, filename):
     size = statinfo.st_size
     FlashLoadStanby(dev, WRITE_IMAGE_START_CMD, size)
     DownloadImageData(dev, filename)
-    FlashLoadFinish(dev)
+    
 
 
 def FlashLoadFinish(dev):
@@ -243,12 +264,15 @@ if __name__ == '__main__':
     if len(sys.argv) < 2:
         print('Usage: {} <filename>'.format(sys.argv[0]))
         sys.exit(-1)
-
-    dev = hid.open(0x10c4, 0x0033)
+    dev = hid.device()
+    dev.open(0x10c4, 0x0033)
+    print("dev", dev)
 
     #1.
     dn = GetDeviceNumber(dev)
+    print('dn', dn)
 
+ 
     #2. 
     SetVccVppLoadStatu(dev)
 
@@ -257,5 +281,6 @@ if __name__ == '__main__':
 
     #4.
     SetVccVppIdleStatu(dev)
-
+    
+    dev.close()
 
