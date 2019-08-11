@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # 
 # OnReset  //afx_msg
 # OnErase  //afx_msg
@@ -78,8 +80,9 @@ SPI_STATU_WR_HIG_CMD	= 0x31
 FT_MSG_SIZE_FLASH = 0x40
 HID_BUF = 63
 
+debug = True
 
-class HidDownloader(object):
+class HidDownloaderBase (object):
     def __init__(self):
         pass
 
@@ -151,12 +154,14 @@ def WriteHid(dev, txBuffer):
     # # print(len(outbuffer))
     outbuffer = bytearray(64)
     outbuffer[:len(txBuffer)] = txBuffer
-    print('TX: ', ''.join(['{:02X} '.format(i) for i in outbuffer]))
+    if debug:
+        print('TX: ', '00 ' + ''.join(['{:02X} '.format(i) for i in outbuffer]))
     return dev.write(outbuffer)
 
 def ReadHid(dev, cnt=FT_MSG_SIZE_FLASH, timeout=1000):
     outbuf = dev.read(64, timeout)
-    print('RX: ', ''.join(['{:02X} '.format(i) for i in outbuf]))
+    if debug:
+        print('RX: ', '00 ' + ''.join(['{:02X} '.format(i) for i in outbuf]))
     # return outbuf[1:cnt+1]
     return outbuf[:cnt]
 
@@ -284,12 +289,13 @@ def DevWriteImage(dev, f, writeLength):
         send_buf[i] = 0xff
     send_buf[0] = WRITE_IMAGE_DATA_CMD
     buf = f.read(writeLength)
-    send_buf[1:1+len(buf)+1] = buf
+    if buf:
+        send_buf[1:1+len(buf)+1] = buf
     WriteHid(dev, send_buf)
 
-def DownloadImageData(dev, filename):
-    statinfo = os.stat(filename)
-    size = statinfo.st_size
+def DownloadImageData(dev, filename, size):
+    #statinfo = os.stat(filename)
+    #size = statinfo.st_size
     total_num = int((size + HID_BUF - 1)/HID_BUF)
     i = 0
     f = open(filename, "rb")
@@ -302,8 +308,9 @@ def DownloadImageData(dev, filename):
 def WriteImage(dev, filename):
     statinfo = os.stat(filename)
     size = statinfo.st_size
+    size = int((size+255)/256)*256
     FlashLoadStanby(dev, WRITE_IMAGE_START_CMD, size)
-    DownloadImageData(dev, filename)
+    DownloadImageData(dev, filename, size)
     
 
 
