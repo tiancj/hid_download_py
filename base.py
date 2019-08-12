@@ -80,7 +80,8 @@ SPI_STATU_WR_HIG_CMD	= 0x31
 FT_MSG_SIZE_FLASH = 0x40
 HID_BUF = 63
 
-debug = True
+debug = False
+verbose = False
 
 class HidDownloaderBase (object):
     def __init__(self):
@@ -206,7 +207,7 @@ def SetVccVppLoadStatu(dev):
 # 3. 
 def CHIP_EXTERN_Reset(dev):
     chip_id = Read_ID(dev)
-    print('chip_id', chip_id)
+    # print('chip_id', chip_id)
 
     # for default chip id
     CHIP_ENABLE_Command(dev)
@@ -216,7 +217,7 @@ def CHIP_EXTERN_Reset(dev):
 
 def CHIP_EXTERN_End(dev):
     chip_id = Read_ID(dev)
-    print('chip_id', chip_id)
+    # print('chip_id', chip_id)
 
     # for default chip id
     CHIP_ENABLE_Command(dev)
@@ -300,10 +301,11 @@ def DownloadImageData(dev, filename, size):
     i = 0
     f = open(filename, "rb")
     while i < total_num:
+        print("\rWriting:   {:.2f}%".format((i/total_num)*100), end='')
         DevWriteImage(dev, f, HID_BUF)
         i += 1
+    print('\rWrite End')
     f.close()
-
 
 def WriteImage(dev, filename):
     statinfo = os.stat(filename)
@@ -339,11 +341,11 @@ if __name__ == '__main__':
         sys.exit(-1)
     dev = hid.device()
     dev.open(0x10c4, 0x0033)
-    print("dev", dev)
+    # print("dev", dev)
 
     #1.
     dn = GetDeviceNumber(dev)
-    print('dn', dn)
+    print('Device Number: ', dn)
 
  
     #2. 
@@ -356,4 +358,5 @@ if __name__ == '__main__':
     SetVccVppIdleStatu(dev)
     
     dev.close()
+    print("Download Successful")
 
