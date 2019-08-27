@@ -1,5 +1,6 @@
 import base
 import time
+import struct
 
 READ_IMAGE_START_CMD = 0
 FM_VERSION = 1
@@ -38,7 +39,7 @@ HID_BUF = 63
 
 class ExternFlash(base.FlashBase):
     def __init__(self, dev):
-        super(ExternFlashDownloader, self).__init__(dev)
+        super(ExternFlash, self).__init__(dev)
 
         # Extern flash parameter
         self.erase_sector = 4*1024
@@ -51,11 +52,28 @@ class ExternFlash(base.FlashBase):
         chip_id = self.Read_ID()
         print('chip_id', chip_id)
 
-        # for default chip id
-        self.CHIP_ENABLE_Command()
-        send_buf = bytearray(1)
-        send_buf[0] = 0x00
-        self.Statu_Write(SPI_STATU_WR_LOW_CMD, send_buf)
+        if chip_id == 0x001340C8:
+            pass
+        elif chip_id == 0x001440E0:
+            pass
+        elif chip_id == 0x001340E0:
+            pass
+        elif chip_id == 0x0013311C:
+            pass
+        elif chip_id == 0x001423C2:
+            pass
+        elif chip_id == 0x001323C2:
+            pass
+        elif chip_id == 0x001640C8:
+            pass
+        elif chip_id == 0x00FFFFFF or chip_id == 0x0:
+            pass
+        else:
+            # for default chip id
+            self.CHIP_ENABLE_Command()
+            send_buf = bytearray(1)
+            send_buf[0] = 0x00
+            self.Statu_Write(SPI_STATU_WR_LOW_CMD, send_buf)
 
     def start(self):
         # Extern flash has no start
@@ -66,11 +84,28 @@ class ExternFlash(base.FlashBase):
         chip_id = self.Read_ID()
         print('chip_id', chip_id)
 
-        # for default chip id
-        self.CHIP_ENABLE_Command()
-        send_buf = bytearray(1)
-        send_buf[0] = 0x3c
-        self.Statu_Write(SPI_STATU_WR_LOW_CMD, send_buf)
+        if chip_id == 0x001340C8:
+            pass
+        elif chip_id == 0x001440E0:
+            pass
+        elif chip_id == 0x001340E0:
+            pass
+        elif chip_id == 0x0013311C:
+            pass
+        elif chip_id == 0x001423C2:
+            pass
+        elif chip_id == 0x001323C2:
+            pass
+        elif chip_id == 0x001640C8:
+            pass
+        elif chip_id == 0x00FFFFFF or chip_id == 0x0:
+            pass
+        else:
+            # for default chip id
+            self.CHIP_ENABLE_Command()
+            send_buf = bytearray(1)
+            send_buf[0] = 0x3c
+            self.Statu_Write(SPI_STATU_WR_LOW_CMD, send_buf)
 
     def Read_ID(self):
         send_buf = bytearray(FT_MSG_SIZE_FLASH)
@@ -79,8 +114,9 @@ class ExternFlash(base.FlashBase):
         send_buf[5] = 0
         send_buf[6] = 3
         self.dev.WriteHid(send_buf)
-        out_buf = self.dev.ReadHid(3)
-        return out_buf
+        out_buf = self.dev.ReadHid(4)
+        id = struct.unpack('<I', out_buf)
+        return id & 0x00FFFFFF
 
     def CHIP_ENABLE_Command(self):
         send_buf = bytearray(FT_MSG_SIZE_FLASH)
@@ -115,6 +151,8 @@ class ExternFlash(base.FlashBase):
 
     def erase(self):
         # CHIP_EXTERN_Erase
+        self.CHIP_ENABLE_Command()
+
         send_buf = bytearray(FT_MSG_SIZE_FLASH)
         send_buf[0] = WRITE_COMMAND_CMD
         send_buf[1] = SPI_CHIP_ERASE_CMD

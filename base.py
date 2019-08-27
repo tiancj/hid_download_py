@@ -153,10 +153,10 @@ class FlashBase(object):
         raise NotImplementedError
 
 class HidDownloader(object):
-    def __init__(self, filename):
+    def __init__(self, flash_cls, filename):
         self.filename = filename
         self.dev = HidDevice()
-        self.flash = extern_flash.ExternFlash(self.dev)
+        self.flash = flash_cls(self.dev)
 
     def GetDeviceNumber(self):
         send_buf = bytearray(1)
@@ -179,14 +179,6 @@ class HidDownloader(object):
         if out_buf[0] != 0xEE:
             return True
         return False
-
-    def DownImage(self):
-        self.flash.reset()  # CHIP_EXTERN_Reset(dev)
-        #   CHIP_ENABLE_Command(dev)   FIXME TODO
-        self.flash.erase()  # 04 C7
-        self.WriteImage()
-        self.flash.end()
-        self.FlashLoadFinish()
 
     def FlashLoadStanby(self, cmd, size):
         send_buf = bytearray(FT_MSG_SIZE_FLASH)
@@ -247,6 +239,13 @@ class HidDownloader(object):
         out_buf = self.dev.ReadHid(1)
         return out_buf # 0xEE
 
+    def DownImage(self):
+        self.flash.reset()  # CHIP_EXTERN_Reset(dev)
+        self.flash.erase()  # 04 C7
+        self.WriteImage()
+        self.flash.end()
+        self.FlashLoadFinish()
+
     def startDownload(self):
         self.dev.Open()
         dn = self.GetDeviceNumber()
@@ -262,7 +261,7 @@ if __name__ == '__main__':
         print('Usage: {} <filename>'.format(sys.argv[0]))
         sys.exit(-1)
 
-    hid_downloader = HidDownloader(sys.argv[1])
+    hid_downloader = HidDownloader(extern_flash.ExternFlash, sys.argv[1])
     hid_downloader.startDownload()
 
     
