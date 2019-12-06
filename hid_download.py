@@ -209,5 +209,5 @@ if __name__ == '__main__':
         print('Usage: {} <filename>'.format(sys.argv[0]))
         sys.exit(-1)
 
-    downloader = HidDownloader(CHIP_TYPE_BK7231, sys.argv[1])
+    downloader = HidDownloader(CHIP_TYPE_BK7231U, sys.argv[1])
     downloader.DownloadProc()

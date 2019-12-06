@@ -23,7 +23,7 @@ class HidDevice(object):
         outbuffer = bytearray(64)
         outbuffer[:len(txBuffer)] = txBuffer
         if debug:
-            print('TX: ', '00 ' + ''.join(['{:02X} '.format(i) for i in outbuffer]))
+            print('TX: ', ''.join(['{:02X} '.format(i) for i in outbuffer]))
         # print("pre: ", time.time())
         ret = self.dev.write(outbuffer)
         # print("after: ", time.time())
@@ -32,6 +32,6 @@ class HidDevice(object):
     def ReadHid(self, cnt=FT_MSG_SIZE_FLASH, timeout=1000):
         outbuf = self.dev.read(64, timeout)
         if debug:
-            print('RX: ', '00 ' + ''.join(['{:02X} '.format(i) for i in outbuf]))
+            print('RX: ', ''.join(['{:02X} '.format(i) for i in outbuf]))
         # return outbuf[1:cnt+1]
         return outbuf[:cnt]
