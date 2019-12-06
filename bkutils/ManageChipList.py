@@ -1,7 +1,7 @@
 # tagDownload_Chip EXTERN_FLASH = 0
-from ExternDownloadFormat import CHIP_EXTERN_Erase, CHIP_EXTERN_Reset
-from BK3435DownloadFormat import *
-from BK7231DownloadFormat import *
+from .chip.ExternDownloadFormat import CHIP_EXTERN_Erase, CHIP_EXTERN_Reset
+from .chip.BK3435DownloadFormat import *
+from .chip.BK7231DownloadFormat import *
 
 EXTERN_FLASH = 0
 ATMEL_FLASH = 1

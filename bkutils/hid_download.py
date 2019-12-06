@@ -26,9 +26,9 @@
 # ObjectChip.Index： 芯片选择
 # FuncSelect：	tagDownload, tagDumpimage, tagErase, tagReset, tagInDebug, tagOutDebug, NoDef,
 
-from HID import HidDevice
-from commands import *
-from ManageChipList import *
+from .HID import HidDevice
+from .commands import *
+from .ManageChipList import *
 import os
 import sys
 

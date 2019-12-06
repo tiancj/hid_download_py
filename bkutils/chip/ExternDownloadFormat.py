@@ -1,6 +1,6 @@
 import time
-from commands import *
 import struct 
+from ..commands import *
 
 FT_MSG_SIZE_FLASH = 0x40
 
