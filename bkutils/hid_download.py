@@ -44,13 +44,13 @@ class HidDownloader:
     downloader.Download()
     """
 
-    def __init__(self, chipIndex, filename, spi_mode=SOFT_SPI, erase_mode=Erase_ALL, 
+    def __init__(self, chipIndex, spi_mode=SOFT_SPI, erase_mode=Erase_ALL, 
                         vid=0x10c4, pid=0x0033):
         self.chipIndex = chipIndex  # chip type
-        self.filename = filename
         self.spi_mode = spi_mode
         self.erase_mode = erase_mode
         self.dev = HidDevice(vid, pid)
+        self.dev.Open()
         # print("chipIndex ", chipIndex)
         self.DownFormat = DownFormatListGet(chipIndex)
         self.MaxFileSize = FlashLoadFileMaxSizeGet(chipIndex)
@@ -60,20 +60,19 @@ class HidDownloader:
         self.RollCodeLen = RollCodeLengthListGet(chipIndex)
 
 
-    def Download(self):
-        self.dev.Open()
+    def Download(self, filename):
         self.GetDeviceNumber()
-        if self.ChipStartDownload():
+        if self.ChipStartDownload(filename):
             print('Success')
         else:
             print('Failed')
 
 
-    def ChipStartDownload(self):
+    def ChipStartDownload(self, filename):
         if not self.SetVccVppLoadStatu():
             print("Vpp打开失败(!=0xee)！")
             return False
-        if not self.DownImage():
+        if not self.DownImage(filename):
             return False
         if not self.SetVccVppIdleStatu(True):
             return False
@@ -81,8 +80,8 @@ class HidDownloader:
 
 
     def SelectChipType(self):
-        return self.DownFormat, SpiDivClkListGet(self.DownFormat)
-        # return self.DownFormat, SpiDivClkListGet(self.chipIndex)
+        # return self.DownFormat, SpiDivClkListGet(self.DownFormat)
+        return self.DownFormat, SpiDivClkListGet(self.chipIndex)
 
 
     ## Verfied
@@ -115,7 +114,7 @@ class HidDownloader:
             return False
         return True
 
-    def DownImage(self):
+    def DownImage(self, filename):
         reset = ResetGet(self.chipIndex)
         if reset:
             print("->>芯片复位中....")
@@ -131,15 +130,15 @@ class HidDownloader:
                 return False
 
         print("->>芯片下载中....")
-        return self.WriteImage()
+        return self.WriteImage(filename)
 
 
-    def WriteImage(self):
-        statinfo = os.stat(self.filename)
+    def WriteImage(self, filename):
+        statinfo = os.stat(filename)
         size = statinfo.st_size
         size = (size+255)//256*256
         self.FlashLoadStanby(WRITE_IMAGE_START_CMD, size)
-        self.DownloadImageData(self.filename, size)
+        self.DownloadImageData(filename, size)
         self.FlashLoadFinish()
         return True
 
