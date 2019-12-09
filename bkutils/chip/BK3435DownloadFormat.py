@@ -1,7 +1,6 @@
 import time
 from .ExternDownloadFormat import CHIP_EXTERN_Reset, CHIP_EXTERN_End
 from ..commands import RESET_ENABLE_PIN, WRITE_COMMAND_CMD, SOFT_SPI, HARD_SPI, DOWNLOAD_STATE, VPP_VCC_POWER_UPDATE
-# from ..ManageChipList import EXTERN_FLASH_FORMAT
 
 FT_MSG_SIZE_FLASH = 0x40
 

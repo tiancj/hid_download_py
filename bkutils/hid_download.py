@@ -81,8 +81,8 @@ class HidDownloader:
 
 
     def SelectChipType(self):
-        return self.DownFormat, SpiDivClkListGet(self.DownFormat)
-        # return self.DownFormat, SpiDivClkListGet(self.chipIndex)
+        # return self.DownFormat, SpiDivClkListGet(self.DownFormat)
+        return self.DownFormat, SpiDivClkListGet(self.chipIndex)
 
 
     ## Verfied
