@@ -16,8 +16,8 @@
 #                   SetVccVppIdleStatu
 #               DownloadEnd
 #
-# b_spi_mode： 	HARD_SPI, HARD_UART, SOFT_SPI, SOFT_I2C
-# b_erase_mode： 	Erase_UNUSE, Erase_ALL, Erase_MAIN
+# spi_mode： 	HARD_SPI, HARD_UART, SOFT_SPI, SOFT_I2C
+# erase_mode： 	Erase_UNUSE, Erase_ALL, Erase_MAIN
 # b_object_mode： 下载方式 OFF_LINE_TOOL(离线下载), CHIP(芯片下载),
 # b_number_mode： 设备号获取方式  FROM_DIVER, FROM_DEFAUT
 # m_StartAddrForContor: 
@@ -36,18 +36,21 @@ HID_BUF = 63
 FT_MSG_SIZE_FLASH = 0x40
 
 class HidDownloader:
-    def __init__(self, chipIndex=None, filename=None, 
-            spi_mode=SOFT_SPI, erase_mode=Erase_ALL, 
-            vid=0x10c4, pid=0x0033):
-        self.b_chipIndex = chipIndex  # chip type
-        self.b_filename = filename
-        self.b_spi_mode = spi_mode
-        self.b_erase_mode = erase_mode
-        self.b_vid = vid
-        self.b_pid = pid
+
+    """
+    HID Downloader tool for Beken
+
+    downloader = HidDownloader(CHIP_TYPE_BK7231U, "bk7231_crc.bin")
+    downloader.Download()
+    """
+
+    def __init__(self, chipIndex, filename, spi_mode=SOFT_SPI, erase_mode=Erase_ALL, 
+                        vid=0x10c4, pid=0x0033):
+        self.chipIndex = chipIndex  # chip type
+        self.filename = filename
+        self.spi_mode = spi_mode
+        self.erase_mode = erase_mode
         self.dev = HidDevice(vid, pid)
-        # self.dev.Open()
-        # print("dev", self.dev)
         print("chipIndex ", chipIndex)
         self.DownFormat = DownFormatListGet(chipIndex)
         self.MaxFileSize = FlashLoadFileMaxSizeGet(chipIndex)
@@ -57,7 +60,7 @@ class HidDownloader:
         self.RollCodeLen = RollCodeLengthListGet(chipIndex)
 
 
-    def DownloadProc(self):
+    def Download(self):
         self.dev.Open()
         self.GetDeviceNumber()
         if self.ChipStartDownload():
@@ -79,7 +82,7 @@ class HidDownloader:
 
     def SelectChipType(self):
         return self.DownFormat, SpiDivClkListGet(self.DownFormat)
-        # return self.DownFormat, SpiDivClkListGet(self.b_chipIndex)
+        # return self.DownFormat, SpiDivClkListGet(self.chipIndex)
 
 
     ## Verfied
@@ -87,7 +90,7 @@ class HidDownloader:
         send_buf = bytearray(5)
         send_buf[0] = VPP_VCC_POWER_UPDATE
         send_buf[1] = DOWNLOAD_STATE
-        send_buf[2] = self.b_spi_mode
+        send_buf[2] = self.spi_mode
         ChipSelect, SpiClkDiv = self.SelectChipType()
         print("ChipSelect {}, SpiClkDiv {}".format( ChipSelect, SpiClkDiv))
         send_buf[3] = SpiClkDiv
@@ -113,14 +116,14 @@ class HidDownloader:
         return True
 
     def DownImage(self):
-        reset = ResetGet(self.b_chipIndex)
+        reset = ResetGet(self.chipIndex)
         if reset:
             print("->>芯片复位中....")
-            if not reset(self.dev):
+            if not reset(self.dev, self.spi_mode, self.DownFormat):
                 print("downImage复位失败!!")
                 return False
         
-        erase = EraseGet(self.b_chipIndex)
+        erase = EraseGet(self.chipIndex)
         if erase:
             print("->>芯片擦除中....")
             if not erase(self.dev):
@@ -132,14 +135,13 @@ class HidDownloader:
 
 
     def WriteImage(self):
-        statinfo = os.stat(self.b_filename)
+        statinfo = os.stat(self.filename)
         size = statinfo.st_size
         size = (size+255)//256*256
         self.FlashLoadStanby(WRITE_IMAGE_START_CMD, size)
-        self.DownloadImageData(self.b_filename, size)
+        self.DownloadImageData(self.filename, size)
         self.FlashLoadFinish()
         return True
-
 
     def FlashLoadStanby(self, cmd, size):
         send_buf = bytearray(FT_MSG_SIZE_FLASH)
@@ -166,11 +168,7 @@ class HidDownloader:
 
 
     def DownloadImageData(self, filename, size):
-        #statinfo = os.stat(filename)
-        #size = statinfo.st_size
         total_num = (size + HID_BUF - 1)//HID_BUF
-        # print("size: ", size)
-        # print("total_num: ", total_num)
         i = 0
         f = open(filename, "rb")
         while i < total_num:
@@ -181,7 +179,7 @@ class HidDownloader:
         f.close()
 
     def FlashLoadFinish(self):
-        end = EndGet(self.b_chipIndex)
+        end = EndGet(self.chipIndex)
         if end:
             if not end(self.dev):
                 print("芯片结束下载超时！")
@@ -210,4 +208,4 @@ if __name__ == '__main__':
         sys.exit(-1)
 
     downloader = HidDownloader(CHIP_TYPE_BK7231U, sys.argv[1])
-    downloader.DownloadProc()
+    downloader.Download()

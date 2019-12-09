@@ -57,7 +57,7 @@ def Statu_Write(hidDev, cmd, cmdHead):
     hidDev.WriteHid(send_buf)
     Wait_Busy_Down(hidDev)
 
-def CHIP_EXTERN_Reset(hidDev):
+def CHIP_EXTERN_Reset(hidDev, *args):
     RunStatu = True
     
     Id = Read_ID(hidDev)
