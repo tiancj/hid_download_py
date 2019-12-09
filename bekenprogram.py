@@ -7,4 +7,4 @@ if len(sys.argv) < 2:
     sys.exit(-1)
 
 downloader = bkutils.HidDownloader(bkutils.CHIP_TYPE_BK7231U, sys.argv[1])
-downloader.DownloadProc()
+downloader.Download()

@@ -51,7 +51,7 @@ class HidDownloader:
         self.spi_mode = spi_mode
         self.erase_mode = erase_mode
         self.dev = HidDevice(vid, pid)
-        print("chipIndex ", chipIndex)
+        # print("chipIndex ", chipIndex)
         self.DownFormat = DownFormatListGet(chipIndex)
         self.MaxFileSize = FlashLoadFileMaxSizeGet(chipIndex)
         self.ImageSectorLen = FlashSectorLengthListGet(chipIndex)
@@ -92,7 +92,7 @@ class HidDownloader:
         send_buf[1] = DOWNLOAD_STATE
         send_buf[2] = self.spi_mode
         ChipSelect, SpiClkDiv = self.SelectChipType()
-        print("ChipSelect {}, SpiClkDiv {}".format( ChipSelect, SpiClkDiv))
+        # print("ChipSelect {}, SpiClkDiv {}".format( ChipSelect, SpiClkDiv))
         send_buf[3] = SpiClkDiv
         send_buf[4] = ChipSelect
         self.dev.WriteHid(send_buf)
@@ -172,10 +172,10 @@ class HidDownloader:
         i = 0
         f = open(filename, "rb")
         while i < total_num:
-            # print("\rWriting:   {:.2f}%".format((i/total_num)*100), end='')
+            print("\rWriting:   {:.2f}%".format((i/total_num)*100), end='')
             self.DevWriteImage(f, HID_BUF)
             i += 1
-        print('Write End               ')
+        print('\rWrite End               ')
         f.close()
 
     def FlashLoadFinish(self):
