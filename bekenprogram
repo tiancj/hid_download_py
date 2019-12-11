@@ -15,7 +15,7 @@ def parse_args():
     description = '''Beken HID Downloader.'''
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('-c', '--chip',
-                        default='bk7231u',
+                        default='bk7231',
                         choices=chip_map.keys(),
                         help="chip type")
     parser.add_argument('filename',
