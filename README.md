@@ -1,6 +1,7 @@
 # Install for Debian/Ubuntu/Linux Mint
 ```
 apt install python3-hid
+python3 setup.py install --user
 ```
 
 # Usage
