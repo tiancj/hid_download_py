@@ -18,6 +18,9 @@ def parse_args():
                         default='bk7231',
                         choices=chip_map.keys(),
                         help="chip type")
+    parser.add_argument('-m', '--mode',
+                        choices=['soft', 'hard'],
+                        default='soft')
     parser.add_argument('filename',
                         help='specify file_crc.bin')
     args = parser.parse_args()
@@ -40,5 +43,6 @@ if not os.path.exists(filename):
     print("file: {} not exist".format(filename))
     sys.exit(-1)
 
-downloader = bkutils.HidDownloader(chip_map[chip_type])
+spi_mode = 2 if args.mode == 'soft' else 0
+downloader = bkutils.HidDownloader(chip_map[chip_type], spi_mode)
 downloader.Download(filename)

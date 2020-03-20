@@ -196,7 +196,7 @@ def BuildCmd_FlashErase(addr: int, szCmd: int):
     return buf[:length+7]
 
 
-def BuildCmd_FlashWrite4K(addr: int, dat):
+def BuildCmd_FlashWrite4K(addr: int, data):
     length=1+(4+4*1024)
     buf = bytearray(4096)
     buf[0]=0x01
@@ -211,7 +211,7 @@ def BuildCmd_FlashWrite4K(addr: int, dat):
     buf[9]=((addr>>8)&0xff)
     buf[10]=((addr>>16)&0xff)
     buf[11]=((addr>>24)&0xff)
-    buf[12:12+len(data)+1] = dat # len(dat) = 4*1024
+    buf[12:12+len(data)+1] = data # len(dat) = 4*1024
     return buf[:length+7]
 
 def BuildCmd_FlashRead4K(addr: int):
@@ -337,7 +337,7 @@ def BuildCmd_FlashGetMID(regAddr: int):
 
 def CheckRespond_LinkCheck(buf):
     cBuf = bytearray([0x04,0x0e,0x05,0x01,0xe0,0xfc,CMD_LinkCheck+1,0x00])
-    return 1 if cBuf == buf else 0
+    return True if cBuf == buf else False
 
 
 def CheckRespond_BootVersion(buf, versionLen):

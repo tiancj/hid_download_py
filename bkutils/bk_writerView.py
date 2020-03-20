@@ -1,10 +1,9 @@
 import time
 
 def _Thread_programm_7231(startAddr, fileLen, pfile):
-    do_reset_signal()
+    # do_reset_signal()
 
     reboot = "reboot"
-    uartdld = "uartdwld"
 
     Start_Cmd(reboot)
     time.sleep(0.1)
@@ -101,4 +100,4 @@ def _Thread_programm_7231(startAddr, fileLen, pfile):
     # CRC check
     print("Verifing Flash")
     crc = ReadCRC(startAddr, fileLen)
-    
+
