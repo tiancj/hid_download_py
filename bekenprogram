@@ -3,6 +3,8 @@ import sys
 import os
 import argparse
 import bkutils
+import hid
+import threading
 
 chip_map = {
     "bk7231": bkutils.CHIP_TYPE_BK7231,
@@ -44,5 +46,27 @@ if not os.path.exists(filename):
     sys.exit(-1)
 
 spi_mode = 2 if args.mode == 'soft' else 0
-downloader = bkutils.HidDownloader(chip_map[chip_type], spi_mode)
-downloader.Download(filename)
+
+spi_device_paths = []
+for device in hid.enumerate():
+    if device['vendor_id']==0x10c4 and device["product_id"]==0x0033:
+        spi_device_paths.append(device['path'])
+
+if not spi_device_paths:
+    print("No SPI hardward dectected")
+    sys.exit(-1)
+
+
+def hid_download_thread(path):
+    downloader = bkutils.HidDownloader(chip_map[chip_type], spi_mode, path=path)
+    downloader.Download(filename)
+
+threads = []
+for path in spi_device_paths:
+    t = threading.Thread(target=hid_download_thread, args=(path,))
+    t.daemon = True
+    t.start()
+    threads.append(t)
+
+for t in threads:
+    t.join()

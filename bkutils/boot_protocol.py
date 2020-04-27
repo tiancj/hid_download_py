@@ -444,6 +444,9 @@ def CheckRespond_FlashWrite4K(buf, addr):
     return False, None
 
 def CheckRespond_FlashRead4K(buf, addr):
+    '''
+    return operation_status, status, buf
+    '''
     cBuf = bytearray([0x04,0x0e,0xff,0x01,0xe0,0xfc,0xf4,(1+1+(4+4*1024))&0xff,
         ((1+1+(4+4*1024))>>8)&0xff,CMD_FlashRead4K])
     if cBuf == buf:

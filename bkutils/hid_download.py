@@ -45,11 +45,11 @@ class HidDownloader:
     """
 
     def __init__(self, chipIndex, spi_mode=SOFT_SPI, erase_mode=Erase_ALL, 
-                        vid=0x10c4, pid=0x0033):
+                        vid=0x10c4, pid=0x0033, path=None):
         self.chipIndex = chipIndex  # chip type
         self.spi_mode = spi_mode
         self.erase_mode = erase_mode
-        self.dev = HidDevice(vid, pid)
+        self.dev = HidDevice(vid, pid, path)
         self.dev.Open()
         # print("chipIndex ", chipIndex)
         self.DownFormat = DownFormatListGet(chipIndex)

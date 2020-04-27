@@ -9,13 +9,17 @@ class HidDevice(object):
 
     """HID device Wrapper"""
 
-    def __init__(self, vid=0x10c4, pid=0x0033):
+    def __init__(self, vid=0x10c4, pid=0x0033, path=None):
         self.vid = vid
         self.pid = pid
+        self.path = path
         self.dev = hid.device()
 
     def Open(self):
-        self.dev.open(self.vid, self.pid)
+        if self.path:
+            self.dev.open_path(self.path)
+        else:
+            self.dev.open(self.vid, self.pid)
 
     def WriteHid(self, txBuffer):
         """write txBuffer to hid device"""
