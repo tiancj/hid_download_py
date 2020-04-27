@@ -17,7 +17,7 @@ def parse_args():
     description = '''Beken HID Downloader.'''
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('-c', '--chip',
-                        default='bk7231',
+                        default='bk7231u',
                         choices=chip_map.keys(),
                         help="chip type")
     parser.add_argument('-m', '--mode',
@@ -57,13 +57,13 @@ if not spi_device_paths:
     sys.exit(-1)
 
 
-def hid_download_thread(path):
-    downloader = bkutils.HidDownloader(chip_map[chip_type], spi_mode, path=path)
+def hid_download_thread(index, path):
+    downloader = bkutils.HidDownloader(chip_map[chip_type], spi_mode, path=path, extra=index)
     downloader.Download(filename)
 
 threads = []
-for path in spi_device_paths:
-    t = threading.Thread(target=hid_download_thread, args=(path,))
+for index,path in enumerate(spi_device_paths):
+    t = threading.Thread(target=hid_download_thread, args=(index, path))
     t.daemon = True
     t.start()
     threads.append(t)

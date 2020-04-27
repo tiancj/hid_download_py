@@ -61,7 +61,7 @@ def CHIP_EXTERN_Reset(hidDev, *args):
     RunStatu = True
     
     Id = Read_ID(hidDev)
-    print("flash_id: {:X}".format(Id))
+    # print("flash_id: {:X}".format(Id))
 
     if Id == 0x001340C8 or Id == 0x001640C8:
         send_buf = bytearray(FT_MSG_SIZE_FLASH)

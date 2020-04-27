@@ -1,9 +1,15 @@
 import hid
 import time
+import platform
 
 debug = False
 
 FT_MSG_SIZE_FLASH = 0x40
+
+
+posix = True
+if platform.system() == 'Windows':
+    posix = False
 
 class HidDevice(object):
 
@@ -23,8 +29,14 @@ class HidDevice(object):
 
     def WriteHid(self, txBuffer):
         """write txBuffer to hid device"""
-        outbuffer = bytearray(64)
-        outbuffer[:len(txBuffer)] = txBuffer
+        if not posix:
+            outbuffer = bytearray(65)
+            outbuffer[0] = 0
+            outbuffer[1:1+len(txBuffer)] = txBuffer
+        else:
+            outbuffer = bytearray(64)
+            outbuffer[:len(txBuffer)] = txBuffer
+
         if debug:
             print('TX: ', ''.join(['{:02X} '.format(i) for i in outbuffer]))
         return self.dev.write(outbuffer)
