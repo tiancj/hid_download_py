@@ -1,3 +1,12 @@
+# encoding: utf8
+#
+# UART Download Tool
+#
+# Copyright (c) BekenCorp. (chunjian.tian@bekencorp.com).  All rights reserved.
+#
+# This software may be distributed under the terms of the BSD license.
+# See README for more details.
+
 # uart wrapper 
 import serial
 from .boot_protocol import *

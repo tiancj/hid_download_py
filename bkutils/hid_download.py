@@ -1,4 +1,12 @@
 #!/usr/bin/env python3
+# encoding: utf8
+#
+# HID Download Tool
+#
+# Copyright (c) BekenCorp. (chunjian.tian@bekencorp.com).  All rights reserved.
+#
+# This software may be distributed under the terms of the BSD license.
+# See README for more details.
 
 # 
 # OnReset  //afx_msg
@@ -68,12 +76,18 @@ class HidDownloader:
         self.extra = extra
 
     def log(self, text):
+        """
+        print text to tqdm progress bar
+        """
         if not self.pbar:
             print("[{}]: {}".format(self.extra, text))
         else:
             self.pbar.set_description("[{}]: {}".format(self.extra, text))
 
     def Download(self, filename):
+        """
+        download filename to BK72xx by SPI
+        """
         statinfo = os.stat(filename)
         size = statinfo.st_size
         size = (size+255)//256*256
@@ -188,6 +202,9 @@ class HidDownloader:
         return True
 
     def FlashLoadStanby(self, cmd, size):
+        """
+        芯片烧录信息加载
+        """
         send_buf = bytearray(FT_MSG_SIZE_FLASH)
         send_buf[0] = cmd
         send_buf[1] = size & 0xFF

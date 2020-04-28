@@ -1,3 +1,12 @@
+# encoding: utf8
+#
+# HID Download Tool
+#
+# Copyright (c) BekenCorp. (chunjian.tian@bekencorp.com).  All rights reserved.
+#
+# This software may be distributed under the terms of the BSD license.
+# See README for more details.
+
 READ_IMAGE_START_CMD = 0
 FM_VERSION = 1
 FM_NUMBER = 2

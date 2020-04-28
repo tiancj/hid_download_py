@@ -1,3 +1,12 @@
+# encoding: utf8
+#
+# HID Download Tool
+#
+# Copyright (c) BekenCorp. (chunjian.tian@bekencorp.com).  All rights reserved.
+#
+# This software may be distributed under the terms of the BSD license.
+# See README for more details.
+#
 # tagDownload_Chip EXTERN_FLASH = 0
 from .chip.ExternDownloadFormat import CHIP_EXTERN_Erase, CHIP_EXTERN_Reset
 from .chip.BK3435DownloadFormat import *
