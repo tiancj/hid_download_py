@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(name="hid_downloader",
-    version="0.1",
+    version="0.99",
     description="HID Download tool",
     author="tiancj",
     author_email="cj.tian.seu@gmail.com",
