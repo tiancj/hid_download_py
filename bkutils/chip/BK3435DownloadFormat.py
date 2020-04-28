@@ -4,7 +4,8 @@ from ..commands import RESET_ENABLE_PIN, WRITE_COMMAND_CMD, SOFT_SPI, HARD_SPI, 
 
 FT_MSG_SIZE_FLASH = 0x40
 
-def CHIP_BK3435_Reset(hidDev, spi_mode, DownFormat):
+def CHIP_BK3435_Reset(hid_downloader, spi_mode, DownFormat):
+    hidDev = hid_downloader.dev
     if spi_mode == HARD_SPI:
         ChangeInterface(hidDev, DownFormat)
 
@@ -17,16 +18,18 @@ def CHIP_BK3435_Reset(hidDev, spi_mode, DownFormat):
         send_buf[1] = 0xD2
         hidDev.WriteHid(send_buf)
 
+    if spi_mode == HARD_SPI:
+        hid_downloader.SetVccVppLoadStatu()
     time.sleep(0.1)
 
-    return CHIP_EXTERN_Reset(hidDev)
+    return CHIP_EXTERN_Reset(hid_downloader)
 
 
 def CHIP_BK3435_Start(*arg):
     return True
 
-def CHIP_BK3435_End(hidDev):
-    return CHIP_EXTERN_End(hidDev)
+def CHIP_BK3435_End(hid_downloader):
+    return CHIP_EXTERN_End(hid_downloader)
 
 def ChangeInterface(hidDev, DownFormat):
     send_buf = bytearray(5)

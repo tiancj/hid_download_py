@@ -160,7 +160,7 @@ class HidDownloader:
         if reset:
             # print("->>芯片复位中....")
             self.log("芯片复位中")
-            if not reset(self.dev, self.spi_mode, self.DownFormat):
+            if not reset(self, self.spi_mode, self.DownFormat):
                 # print("downImage复位失败!!")
                 self.log("复位失败")
                 return False
@@ -169,7 +169,7 @@ class HidDownloader:
         if erase:
             # print("->>芯片擦除中....")
             self.log("芯片擦除中")
-            if not erase(self.dev):
+            if not erase(self):
                 self.log("擦除失败!!")
                 return False
 
@@ -228,7 +228,7 @@ class HidDownloader:
     def FlashLoadFinish(self):
         end = EndGet(self.chipIndex)
         if end:
-            if not end(self.dev):
+            if not end(self):
                 self.log("芯片结束下载超时")
                 return False
         

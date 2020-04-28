@@ -57,9 +57,10 @@ def Statu_Write(hidDev, cmd, cmdHead):
     hidDev.WriteHid(send_buf)
     Wait_Busy_Down(hidDev)
 
-def CHIP_EXTERN_Reset(hidDev, *args):
+def CHIP_EXTERN_Reset(hid_downloader, *args):
+    hidDev = hid_downloader.dev
     RunStatu = True
-    
+
     Id = Read_ID(hidDev)
     # print("flash_id: {:X}".format(Id))
 
@@ -95,7 +96,8 @@ def CHIP_EXTERN_Reset(hidDev, *args):
 
     return RunStatu
 
-def CHIP_EXTERN_Erase(hidDev):
+def CHIP_EXTERN_Erase(hid_downloader):
+    hidDev = hid_downloader.dev
     CHIP_ENABLE_Command(hidDev)
     send_buf = bytearray(FT_MSG_SIZE_FLASH)
     send_buf[0] = WRITE_COMMAND_CMD
@@ -104,7 +106,8 @@ def CHIP_EXTERN_Erase(hidDev):
     Wait_Busy_Down(hidDev)
     return True
 
-def CHIP_EXTERN_End(hidDev):
+def CHIP_EXTERN_End(hid_downloader):
+    hidDev = hid_downloader.dev
     RunStatu = True
     
     Id = Read_ID(hidDev)
