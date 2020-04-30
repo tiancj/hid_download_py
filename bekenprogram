@@ -33,7 +33,7 @@ def parse_args():
                         help="chip type")
     parser.add_argument('-m', '--mode',
                         choices=['soft', 'hard'],
-                        default='soft')
+                        default='hard')
     parser.add_argument('filename',
                         help='specify file_crc.bin')
     args = parser.parse_args()
