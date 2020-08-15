@@ -1,0 +1,19 @@
+#!/usr/bin/env python3
+# encoding: utf8
+#
+# HID Download Tool
+#
+# Copyright (c) BekenCorp. (chunjian.tian@bekencorp.com).  All rights reserved.
+#
+# This software may be distributed under the terms of the BSD license.
+# See README for more details.
+
+import sys
+import os
+import argparse
+from bkutils import UartDownloader
+import hid
+import threading
+
+downloader = UartDownloader()
+downloader.programm_7231("bkutils/Hid.obj")
