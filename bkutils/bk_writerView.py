@@ -54,10 +54,13 @@ class UartDownloader(object):
             time.sleep(0.01)
 
         print("Gotten Bus...")
+        self.bootItf.Drain()
 
-        # Step2: set baudrate
-        # self.bootItf.SetBR(115200)
-
+        # Step2: set baudrate, delay 100ms
+        if not self.bootItf.SetBR(460800, 100):
+            print("Set baudrate failed")
+            return
+        print("Set baudrate successful")
 
         # Step3: read file into system memory
         # TODO: sanity check

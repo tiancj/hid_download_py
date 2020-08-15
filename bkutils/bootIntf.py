@@ -11,8 +11,9 @@
 import serial
 from .boot_protocol import *
 import binascii
+import time
 
-debug = True
+debug = False
 
 class CBootIntf(object):
     def __init__(self, port, baudrate, timeout):
@@ -25,12 +26,17 @@ class CBootIntf(object):
         self.ser.write(txbuf)
         if True:
             rxbuf = self.ser.read(1024)
-            print('RX1: ', binascii.b2a_hex(rxbuf, b' '))
+            if debug:
+                print('RX1: ', binascii.b2a_hex(rxbuf, b' '))
             # print('RXS: ', rxbuf)
             # if rxbuf and (len(rxbuf) == rxLen):
             #   return rxbuf
             return rxbuf
         return None
+
+    def Drain(self):
+        self.ser.timeout = 0.1
+        self.ser.read(1024)
 
     def WaitForRespond(self):
         pass
@@ -44,11 +50,16 @@ class CBootIntf(object):
                 return True
         return False
 
-    def SetBR(self, baudrate):
-        txbuf = BuildCmd_SetBaudRate(baudrate, 100)
+    def SetBR(self, baudrate, delay):
+        txbuf = BuildCmd_SetBaudRate(baudrate, delay)
         rxbuf = self.Start_Cmd(txbuf, CalcRxLength_SetBaudRate())
+        self.ser.baudrate = baudrate
+        time.sleep(delay/1000)
+        if not rxbuf:
+            rxbuf = self.ser.read(1024)
+            # print('RX3: ', binascii.b2a_hex(rxbuf, b' '))
         if rxbuf:
-            if CheckRespond_SetBaudRate(rxbuf, baudrate, 100):
+            if CheckRespond_SetBaudRate(rxbuf, baudrate, delay):
                 return True
         return False
 
