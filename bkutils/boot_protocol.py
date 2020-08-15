@@ -345,7 +345,7 @@ def BuildCmd_FlashGetMID(regAddr: int):
 
 
 def CheckRespond_LinkCheck(buf):
-    cBuf = bytearray([0x04,0x0e,0x05,0x01,0xe0,0xfc,CMD_LinkCheck+1,0x00])
+    cBuf = bytes([0x04,0x0e,0x05,0x01,0xe0,0xfc,CMD_LinkCheck+1,0x00])
     return True if cBuf == buf else False
 
 
@@ -387,7 +387,7 @@ def CheckRespond_WriteReg(buf, regAddr, val):
     return True if cBuf == buf else False
 
 def CheckRespond_SetBaudRate(buf, baudrate, dly_ms):
-    cBuf =bytearray([0x04,0x0e,0x05,0x01,0xe0,0xfc,CMD_SetBaudRate,0,0,0,0])
+    cBuf =bytearray([0x04,0x0e,0x05,0x01,0xe0,0xfc,CMD_SetBaudRate,0,0,0,0,0])
     cBuf[2]=3+1+4+1
     cBuf[7]=(baudrate&0xff)
     cBuf[8]=((baudrate>>8)&0xff)
@@ -400,13 +400,14 @@ def CheckRespond_SetBaudRate(buf, baudrate, dly_ms):
 def CheckRespond_CheckCRC(buf, startAddr, endAddr):
     cBuf = bytearray([0x04,0x0e,0x05,0x01,0xe0,0xfc,CMD_CheckCRC])
     cBuf[2]=3+1+4
-    if cBuf == buf:
+    # FIXME: Length check
+    if cBuf == buf[:len(cBuf)]:
         t=buf[10]
         t=(t<<8)+buf[9]
         t=(t<<8)+buf[8]
         t=(t<<8)+buf[7]
         return True, t
-    return False, None
+    return False, 0
 
 def CheckRespond_StayRom(buf):
     cBuf = bytearray([0x04,0x0e,0x05,0x01,0xe0,0xfc,CMD_StayRom])
@@ -440,14 +441,14 @@ def CheckRespond_FlashErase4K(buf, addr):
 
 def CheckRespond_FlashErase(buf, addr, szCmd):
     cBuf = bytearray([0x04,0x0e,0xff,0x01,0xe0,0xfc,0xf4,1+1+(1+4), 0x00,CMD_FlashErase])
-    if buf[11] == szCmd and cBuf == buf:
+    if buf[11] == szCmd and cBuf == buf[:len(cBuf)]:
         # TODO: memcmp(&buf[12],&addr,4)==0
         return True, buf[10]
     return False, None
 
 def CheckRespond_FlashWrite4K(buf, addr):
     cBuf = bytearray([0x04,0x0e,0xff,0x01,0xe0,0xfc,0xf4,1+1+(4),0x00,CMD_FlashWrite4K])
-    if cBuf == buf:
+    if cBuf == buf[:len(cBuf)]:
         # TODO: memcmp(&buf[11],&addr,4)==0
         return True, buf[10]
     return False, None

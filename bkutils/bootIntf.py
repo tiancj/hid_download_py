@@ -10,6 +10,7 @@
 # uart wrapper 
 import serial
 from .boot_protocol import *
+import binascii
 
 debug = True
 
@@ -17,15 +18,18 @@ class CBootIntf(object):
     def __init__(self, port, baudrate, timeout):
         self.ser = serial.Serial(port, baudrate, timeout=timeout)
 
-    def Start_Cmd(self, txbuf, rxLen=0, timeout=10):
+    def Start_Cmd(self, txbuf, rxLen=0, timeout=0.1):
         if debug:
-            print("TX: ", txbuf)
+            print("TX: ", binascii.b2a_hex(txbuf if len(txbuf) < 16 else txbuf[:16], b' '))
+        self.ser.timeout = timeout
         self.ser.write(txbuf)
-        if rxLen:
-            rxbuf = self.ser.read(rxLen)
-            print('RX: ', rxbuf)
-            if rxbuf and (len(rxbuf) == rxLen):
-                return rxbuf
+        if True:
+            rxbuf = self.ser.read(1024)
+            print('RX1: ', binascii.b2a_hex(rxbuf, b' '))
+            # print('RXS: ', rxbuf)
+            # if rxbuf and (len(rxbuf) == rxLen):
+            #   return rxbuf
+            return rxbuf
         return None
 
     def WaitForRespond(self):
@@ -33,24 +37,25 @@ class CBootIntf(object):
 
     def LinkCheck(self):
         txbuf = BuildCmd_LinkCheck()
-        rxbuf = self.Start_Cmd(txbuf, CalcRxLength_LinkCheck(), 0.2)
-        if not rxbuf:
+        rxbuf = self.Start_Cmd(txbuf, CalcRxLength_LinkCheck(), 0.001)
+        if rxbuf:
+            # print('RX2: ', binascii.b2a_hex(rxbuf, b' '))
             if CheckRespond_LinkCheck(rxbuf):
-                return rxbuf
+                return True
         return False
 
     def SetBR(self, baudrate):
         txbuf = BuildCmd_SetBaudRate(baudrate, 100)
         rxbuf = self.Start_Cmd(txbuf, CalcRxLength_SetBaudRate())
-        if not rxbuf:
+        if rxbuf:
             if CheckRespond_SetBaudRate(rxbuf, baudrate, 100):
-                return rxbuf
+                return True
         return False
 
     def ReadSector(self, addr):
         txbuf = BuildCmd_FlashRead4K(addr)
         rxbuf = self.Start_Cmd(txbuf, CalcRxLength_FlashRead4K())
-        if not rxbuf:
+        if rxbuf:
             ret, _, data = CheckRespond_FlashRead4K(rxbuf, addr)
             if ret:
                 return data
@@ -59,7 +64,7 @@ class CBootIntf(object):
     def EraseBlock(self, val, addr):
         txbuf = BuildCmd_FlashErase(addr, val)
         rxbuf = self.Start_Cmd(txbuf, CalcRxLength_FlashErase())
-        if not rxbuf:
+        if rxbuf:
             ret, _ = CheckRespond_FlashErase(rxbuf, addr, val)
             if ret:
                 return True
@@ -68,16 +73,20 @@ class CBootIntf(object):
     def WriteSector(self, addr, buf):
         txbuf = BuildCmd_FlashWrite4K(addr, buf)
         rxbuf = self.Start_Cmd(txbuf, CalcRxLength_FlashWrite4K())
-        if not rxbuf:
-            ret, _ = CheckRespond_FlashWrite4K(txbuf, addr)
+        if rxbuf:
+            ret, _ = CheckRespond_FlashWrite4K(rxbuf, addr)
             if ret:
                 return True
         return False
 
     def ReadCRC(self, start, end):
+        '''
+        Read crc of flash region from @start to @end
+
+        return (True_or_False, crc)
+        '''
         txbuf = BuildCmd_CheckCRC(start, end)
         rxbuf = self.Start_Cmd(txbuf, CalcRxLength_CheckCRC)
-        if not rxbuf:
-            if CheckRespond_CheckCRC(txbuf, start, end):
-                return rxbuf
-        return False
+        if rxbuf:
+            return CheckRespond_CheckCRC(rxbuf, start, end)
+        return False,0
