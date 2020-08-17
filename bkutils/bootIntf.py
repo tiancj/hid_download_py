@@ -123,7 +123,7 @@ class CBootIntf(object):
 
     def EraseBlock(self, val, addr):
         txbuf = BuildCmd_FlashErase(addr, val)
-        rxbuf = self.Start_Cmd(txbuf, CalcRxLength_FlashErase(), 0.1)
+        rxbuf = self.Start_Cmd(txbuf, CalcRxLength_FlashErase(), 1)
         if rxbuf:
             ret, _ = CheckRespond_FlashErase(rxbuf, addr, val)
             if ret:
