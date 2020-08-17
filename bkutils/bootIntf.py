@@ -19,24 +19,36 @@ class CBootIntf(object):
     def __init__(self, port, baudrate, timeout):
         self.ser = serial.Serial(port, baudrate, timeout=timeout)
 
-    def Start_Cmd(self, txbuf, rxLen=0, timeout=0.1):
+    def Start_Cmd(self, txbuf, rxLen=0, timeout=0.05):
         if debug:
-            print("TX: ", binascii.b2a_hex(txbuf if len(txbuf) < 16 else txbuf[:16], b' '))
+            # print("TX: ", binascii.b2a_hex(txbuf if len(txbuf) < 16 else txbuf[:16], b' '))
+            print("TX: ", binascii.b2a_hex(txbuf, b' '))
         self.ser.timeout = timeout
+        if debug:
+            print("tx start: ", time.time())
         self.ser.write(txbuf)
+        if debug:
+            print("tx end: ", time.time())
+        # time.sleep(0.01)
         if True:
-            rxbuf = self.ser.read(1024)
             if debug:
+                print("read start: ", time.time())
+            rxbuf = self.ser.read(10240)
+            if debug:
+                print("read end: ", time.time())
                 print('RX1: ', binascii.b2a_hex(rxbuf, b' '))
-            # print('RXS: ', rxbuf)
+                print('RXS: ', rxbuf)
             # if rxbuf and (len(rxbuf) == rxLen):
             #   return rxbuf
             return rxbuf
         return None
 
     def Drain(self):
-        self.ser.timeout = 0.1
+        self.ser.timeout = 0.01
         self.ser.read(1024)
+
+    def Read(self):
+        return self.ser.read(1024)
 
     def WaitForRespond(self):
         pass
@@ -52,7 +64,7 @@ class CBootIntf(object):
 
     def SetBR(self, baudrate, delay):
         txbuf = BuildCmd_SetBaudRate(baudrate, delay)
-        rxbuf = self.Start_Cmd(txbuf, CalcRxLength_SetBaudRate())
+        rxbuf = self.Start_Cmd(txbuf, CalcRxLength_SetBaudRate(), 0.05)
         self.ser.baudrate = baudrate
         time.sleep(delay/1000)
         if not rxbuf:
@@ -74,7 +86,7 @@ class CBootIntf(object):
 
     def EraseBlock(self, val, addr):
         txbuf = BuildCmd_FlashErase(addr, val)
-        rxbuf = self.Start_Cmd(txbuf, CalcRxLength_FlashErase())
+        rxbuf = self.Start_Cmd(txbuf, CalcRxLength_FlashErase(), 0.1)
         if rxbuf:
             ret, _ = CheckRespond_FlashErase(rxbuf, addr, val)
             if ret:
@@ -97,7 +109,7 @@ class CBootIntf(object):
         return (True_or_False, crc)
         '''
         txbuf = BuildCmd_CheckCRC(start, end)
-        rxbuf = self.Start_Cmd(txbuf, CalcRxLength_CheckCRC)
+        rxbuf = self.Start_Cmd(txbuf, CalcRxLength_CheckCRC, 0.1)
         if rxbuf:
             return CheckRespond_CheckCRC(rxbuf, start, end)
         return False,0

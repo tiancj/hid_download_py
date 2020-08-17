@@ -32,9 +32,10 @@ def crc32_ver2(crc, buf):
 
 class UartDownloader(object):
     def __init__(self, port='/dev/ttyUSB0', baudrate=115200):
-        self.bootItf = CBootIntf(port, baudrate, 0.2)
+        self.bootItf = CBootIntf(port, 115200, 0.2)
+        self.target_baudrate = baudrate
 
-    def programm_7231(self, filename, startAddr=0x11000):
+    def programm(self, filename, startAddr=0x11000):
         # do_reset_signal()
         # reboot = "reboot"
         # self.bootItf.Start_Cmd(reboot)
@@ -57,10 +58,11 @@ class UartDownloader(object):
         self.bootItf.Drain()
 
         # Step2: set baudrate, delay 100ms
-        if not self.bootItf.SetBR(460800, 100):
-            print("Set baudrate failed")
-            return
-        print("Set baudrate successful")
+        if self.target_baudrate != 115200:
+            if not self.bootItf.SetBR(self.target_baudrate, 50):
+                print("Set baudrate failed")
+                return
+            print("Set baudrate successful")
 
         # Step3: read file into system memory
         # TODO: sanity check
@@ -115,10 +117,21 @@ class UartDownloader(object):
             print("Handle file end...")
             buf = bytearray(b'\xff'*4096)   # fill with 0xFF
             buf[:s1&0xfff] = pfile[filEPtr-(s1&0xfff):]  # copy s1&0xfff len
-            self.bootItf.EraseBlock(0x20, s1&0xfffff000)
+            # print(time.time())
+            for _ in range(4):
+                if self.bootItf.EraseBlock(0x20, s1&0xfffff000):
+                    break
+                time.sleep(0.05)
+            # time.sleep(0.1)
+
+            # for _ in range(10):
+            #    tt = self.bootItf.Read()
+            #    print(tt)
+            #print(time.time())
             if not self.bootItf.WriteSector(s1&0xfffff000, buf):
-                print("WriteSector Failed")
+                print("WriteSector 0 Failed")
                 return
+            # print(time.time())
 
             filEPtr = filEPtr - (s1&0xfff) 
             filOLen = filOLen - (s1&0xfff) 
@@ -126,8 +139,20 @@ class UartDownloader(object):
                 # TODO: goto crc check
                 pass
 
+        print("Handle file end done")
+
+        # Step3.3: 对齐64KB，如果擦除区域小于64KB
+        len1 = ss + filOLen
+        len0 = s0 & 0xffff0000
+        if s0 & 0xffff:
+            len0 += 0x10000
+        if filOLen > len0 - s0:
+            while s0 < len0:
+                self.bootItf.EraseBlock(0x20, s0)
+                s0 += 0x1000
+
         # print("fileOLen: {}, filSPtr: {}".format(filOLen, filSPtr))
-        # Step3.3: Erase 64k, 4k, etc.
+        # Step3.4: Erase 64k, 4k, etc.
         # 按照64KB/4K block擦除
         len1 = ss + filOLen
         while s0 < len1:
@@ -146,7 +171,7 @@ class UartDownloader(object):
         while i < filOLen:
             print("Writing Flash {}".format(100*i//filOLen))
             if not self.bootItf.WriteSector(ss+i, pfile[filSPtr+i:filSPtr+i+4*1024]):
-                print("WriteSector Failed")
+                print("WriteSector 1 Failed")
                 return
             i += 0x1000
 

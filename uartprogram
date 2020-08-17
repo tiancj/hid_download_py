@@ -15,5 +15,26 @@ from bkutils import UartDownloader
 import hid
 import threading
 
-downloader = UartDownloader()
-downloader.programm_7231("bkutils/Hid.obj")
+# parse commandline arguments
+def parse_args():
+    description = '''Beken Uart Downloader.'''
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument('-d', '--device',
+                        default='/dev/ttyUSB0',
+                        help="Uart device, default /dev/ttyUSB0")
+    parser.add_argument('-s', '--startaddr', type=lambda  x: int(x, 16),
+                        default=0x11000,
+                        help="burn flash address, defaults to 0x11000")
+    parser.add_argument('-b', '--baudrate', type=int,
+                        default=115200,
+                        help="burn uart baudrate, defaults to 115200")
+    parser.add_argument('filename',
+                        help='specify file_crc.bin')
+    args = parser.parse_args()
+
+    return args
+
+args = parse_args()
+
+downloader = UartDownloader(args.device, args.baudrate)
+downloader.programm(args.filename, args.startaddr)
