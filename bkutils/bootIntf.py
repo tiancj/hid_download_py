@@ -146,7 +146,35 @@ class CBootIntf(object):
         return (True_or_False, crc)
         '''
         txbuf = BuildCmd_CheckCRC(start, end)
-        rxbuf = self.Start_Cmd(txbuf, CalcRxLength_CheckCRC, 1)
+        rxbuf = self.Start_Cmd(txbuf, CalcRxLength_CheckCRC(), 5)
         if rxbuf:
             return CheckRespond_CheckCRC(rxbuf, start, end)
         return False,0
+
+    def GetFlashMID(self):
+        txbuf = BuildCmd_FlashGetMID(0x9f)
+        rxbuf = self.Start_Cmd(txbuf, CalcRxLength_FlashGetID())
+        if rxbuf:
+            return CheckRespond_FlashGetMID(rxbuf)
+        return 0
+
+    def ReadFlashSR(self, regAddr):
+        txbuf = BuildCmd_FlashReadSR(regAddr)
+        rxbuf = self.Start_Cmd(txbuf, CalcRxLength_FlashReadSR())
+        if rxbuf:
+            return CheckRespond_FlashReadSR(rxbuf, regAddr)
+        return False,0,0
+
+    def WriteFlashSR(self, sz, regAddr, value):
+        if sz == 1:
+            txbuf = BuildCmd_FlashWriteSR(regAddr, value)
+            rxl = CalcRxLength_FlashWriteSR()
+        else:
+            txbuf = BuildCmd_FlashWriteSR2(regAddr, value)
+            rxl = CalcRxLength_FlashWriteSR2()
+        rxbuf = self.Start_Cmd(txbuf, rxl)
+        if rxbuf:
+            if sz == 1:
+                return CheckRespond_FlashWriteSR(rxbuf, regAddr, value)
+            else:
+                return CheckRespond_FlashWriteSR2(rxbuf, regAddr, value)

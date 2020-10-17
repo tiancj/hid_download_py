@@ -12,6 +12,9 @@ from .bootIntf import CBootIntf
 from serial import Timeout
 import binascii
 from tqdm import tqdm
+from .flash_list import *
+
+debug = False
 
 # make crc32 table
 crc32_table = []
@@ -32,9 +35,10 @@ def crc32_ver2(crc, buf):
     return crc
 
 class UartDownloader(object):
-    def __init__(self, port='/dev/ttyUSB0', baudrate=115200):
+    def __init__(self, port='/dev/ttyUSB0', baudrate=115200, unprotect=False):
         self.bootItf = CBootIntf(port, 115200, 0.005)
         self.target_baudrate = baudrate
+        self.unprotect = unprotect
         self.pbar = None
 
     def log(self, text):
@@ -95,6 +99,12 @@ class UartDownloader(object):
                 return
             self.log("Set baudrate successful")
 
+        if self.unprotect:
+            # Get Mid
+            mid = self.bootItf.GetFlashMID()
+            # print("mid: {:x}".format(mid))
+            self._Do_Boot_ProtectFlash(mid, True)
+            # unprotect flash first
 
         # Step4: erase 
         # Step4.1: read first 4k if startAddr not aligned with 4K
@@ -217,8 +227,54 @@ class UartDownloader(object):
             self.pbar.close()
             return
 
+        if self.unprotect:
+            self._Do_Boot_ProtectFlash(mid, False)
+
         self.log("Write Successful")
         self.pbar.close()
+
+    def _Do_Boot_ProtectFlash(self, mid:int, unprotect:bool):
+        # 1. find flash info
+        flash_info = GetFlashInfo(mid)
+        if flash_info is None:
+            return -1
+        if debug:
+            print(flash_info.icNam, flash_info.manName)
+
+        timeout = Timeout(1)
+
+        # 2. write (un)protect word
+        cw = flash_info.cwUnp if unprotect else flash_info.cwEnp
+        while True:
+            sr = 0
+
+            # read sr register
+            for i in range(flash_info.szSR):
+                f = self.bootItf.ReadFlashSR(flash_info.cwdRd[i])
+                if f[0]:
+                    sr |= f[2] << (8 * i)
+                    if debug: print("sr: {:x}".format(sr))
+
+            if debug:
+                print("final sr: {:x}".format(sr))
+                print("msk: {:x}".format(flash_info.cwMsk))
+                print("cw: {:x}, sb: {}, lb: {}".format(cw, flash_info.sb, flash_info.lb))
+                print("bfd: {:x}".format(BFD(cw, flash_info.sb, flash_info.lb)))
+
+            # if (un)protect word is set
+            if (sr & flash_info.cwMsk) == BFD(cw, flash_info.sb, flash_info.lb):
+                return 1
+            if timeout.expired():
+                return -2
+            # // set (un)protect word
+            srt = sr & (flash_info.cwMsk ^ 0xffffffff)
+            srt |= BFD(cw, flash_info.sb, flash_info.lb)
+            f = self.bootItf.WriteFlashSR(flash_info.szSR, flash_info.cwdWr[0], srt & 0xffff)
+
+            time.sleep(0.01)
+
+        return 1
+
 
 if __name__ == '__main__':
     downloader = UartDownloader()

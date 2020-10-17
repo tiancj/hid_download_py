@@ -25,6 +25,8 @@ def parse_args():
     parser.add_argument('-s', '--startaddr', type=lambda  x: int(x, 16),
                         default=0x11000,
                         help="burn flash address, defaults to 0x11000")
+    parser.add_argument('-u', '--unprotect', action="store_true",
+                        help="unprotect flash first, used by BK7231N")
     parser.add_argument('-b', '--baudrate', type=int,
                         default=115200,
                         help="burn uart baudrate, defaults to 115200")
@@ -36,5 +38,5 @@ def parse_args():
 
 args = parse_args()
 
-downloader = UartDownloader(args.device, args.baudrate)
+downloader = UartDownloader(args.device, args.baudrate, args.unprotect)
 downloader.programm(args.filename, args.startaddr)

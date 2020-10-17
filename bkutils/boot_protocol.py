@@ -7,7 +7,8 @@
 # This software may be distributed under the terms of the BSD license.
 # See README for more details.
 
-# 创建bk3266通信命令，返回命令的长度
+import struct
+
 CMD_LinkCheck=0
 CMD_ReadBootVersion = 0x11
 CMD_ReadReg=3
@@ -480,15 +481,16 @@ def CheckRespond_FlashRead(buf, addr, lenObj):
 
 def CheckRespond_FlashReadSR(buf, regAddr):
     cBuf = bytearray([0x04,0x0e,0xff,0x01, 0xe0,0xfc,0xf4,(1+1+(1+1))&0xff, ((1+1+(1+1))>>8)&0xff,CMD_FlashReadSR])
-    if cBuf == buf and regAddr == buf[11]:
+    if cBuf == buf[:len(cBuf)] and regAddr == buf[11]:
         return True, buf[10], buf[12]
-    return False, None, None
+    return False, 0, 0
 
 def CheckRespond_FlashWriteSR(buf, regAddr, val):
     cBuf = bytearray([0x04,0x0e,0xff,0x01,
         0xe0,0xfc,0xf4,(1+1+(1+1))&0xff,
         ((1+1+(1+1))>>8)&0xff,CMD_FlashWriteSR])
-    if cBuf == buf and val == buf[12] and regAddr == buf[11]:
+    # print("writeSR: ", buf)
+    if cBuf == buf[:len(cBuf)] and val == buf[12] and regAddr == buf[11]:
         return True, buf[10]
     return False, None
 
@@ -496,7 +498,8 @@ def CheckRespond_FlashWriteSR2(buf, regAddr, val):
     cBuf = bytearray([0x04,0x0e,0xff,0x01,
         0xe0,0xfc,0xf4,(1+1+(1+2))&0xff,
         ((1+1+(1+2))>>8)&0xff,CMD_FlashWriteSR])
-    if cBuf == buf and val&0xFF == buf[12] and ((val>>8)&0xFF) == buf[13]:
+    # print("writeSR2: ", buf)
+    if cBuf == buf[:len(cBuf)] and val&0xFF == buf[12] and ((val>>8)&0xFF) == buf[13]:
         return True, buf[10]
     return False, None
 
@@ -504,9 +507,17 @@ def CheckRespond_FlashGetMID(buf):
     cBuf = bytearray([0x04,0x0e,0xff,0x01,
         0xe0,0xfc,0xf4,(1+4)&0xff,
         ((1+4)>>8)&0xff,CMD_FlashGetMID])
-    if cBuf == buf:
-        return True, buf[10], buf[11:]
-    return False, None, None
+    if cBuf == buf[:10]:
+        return struct.unpack("<I", buf[11:])[0]>>8
+        # return True, buf[10], struct.unpack("<I", buf[11:])[0]>>8
+
+    # FIX BootROM Bug
+    cBuf[7] += 1
+    if cBuf == buf[:10]:
+        return struct.unpack("<I", buf[11:])[0]>>8
+        # return True, buf[10], struct.unpack("<I", buf[11:])[0]>>8
+
+    return 0
 
 def GetRespond_CmdType(buf):
     return buf[9] if buf[2] == 0xff else buf[6]
