@@ -19,6 +19,7 @@ chip_map = {
     "bk7231": bkutils.CHIP_TYPE_BK7231,
     "bk7231s": bkutils.CHIP_TYPE_BK7231U,
     "bk7231u": bkutils.CHIP_TYPE_BK7231U,
+    "bk7231n": bkutils.CHIP_TYPE_BK7231U,
     "bk7221u": bkutils.CHIP_TYPE_BK7221U,
     "bk7251": bkutils.CHIP_TYPE_BK7251,
 }
@@ -30,10 +31,11 @@ def parse_args():
     parser.add_argument('-c', '--chip',
                         default='bk7231u',
                         choices=chip_map.keys(),
-                        help="chip type")
+                        help="chip type, defaults to bk7231u")
     parser.add_argument('-m', '--mode',
                         choices=['soft', 'hard'],
-                        default='hard')
+                        default='hard',
+                        help="SPI mode, defaults to hardware mode")
     parser.add_argument('filename',
                         help='specify file_crc.bin')
     args = parser.parse_args()
