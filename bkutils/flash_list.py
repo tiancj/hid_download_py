@@ -1,3 +1,4 @@
+# encoding: utf8
 
 FLASH_ID_XTX_25F08B=0x14405e        # 芯天下flash,w+v:6.5s,e+w+v:11.5s
 FLASH_ID_MXIC_25V8035F=0x1423c2     # 旺宏flash,w+v:8.2s,e+w+v:17.2s
