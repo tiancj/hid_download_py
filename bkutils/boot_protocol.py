@@ -347,13 +347,13 @@ def BuildCmd_FlashGetMID(regAddr: int):
 
 def CheckRespond_LinkCheck(buf):
     cBuf = bytes([0x04,0x0e,0x05,0x01,0xe0,0xfc,CMD_LinkCheck+1,0x00])
-    return True if cBuf == buf else False
+    return True if len(cBuf) <= len(buf) and cBuf == buf[:len(cBuf)] else False
 
 
 def CheckRespond_BootVersion(buf, versionLen):
     cBuf = bytearray([0x04,0x0e,0x05,0x01,0xe0,0xfc,CMD_ReadBootVersion])
     cBuf[2] = 4 + versionLen
-    if cBuf == buf[:len(cBuf)]:
+    if len(cBuf) <= len(buf) and cBuf == buf[:len(cBuf)]:
         return True, buf[len(cBuf):]
     return False, None
 
@@ -365,7 +365,7 @@ def CheckRespond_ReadReg(buf, regAddr):
     cBuf[8]=((regAddr>>8)&0xff)
     cBuf[9]=((regAddr>>16)&0xff)
     cBuf[10]=((regAddr>>24)&0xff)
-    if cBuf == buf[:11]:
+    if len(cBuf) <= len(buf) and cBuf == buf[:11]:
         t=buf[14]
         t=(t<<8)+buf[13]
         t=(t<<8)+buf[12]
@@ -385,7 +385,7 @@ def CheckRespond_WriteReg(buf, regAddr, val):
     cBuf[13]=((val>>16)&0xff)
     cBuf[14]=((val>>24)&0xff)
 
-    return True if cBuf == buf else False
+    return True if len(cBuf) <= len(buf) and cBuf == buf[:len(cBuf)] else False
 
 def CheckRespond_SetBaudRate(buf, baudrate, dly_ms):
     cBuf =bytearray([0x04,0x0e,0x05,0x01,0xe0,0xfc,CMD_SetBaudRate,0,0,0,0,0])
@@ -396,13 +396,13 @@ def CheckRespond_SetBaudRate(buf, baudrate, dly_ms):
     cBuf[10]=((baudrate>>24)&0xff)
     cBuf[11]=(dly_ms&0xff)
 
-    return True if cBuf == buf else False
+    return True if len(cBuf) <= len(buf) and cBuf == buf[:len(cBuf)] else False
 
 def CheckRespond_CheckCRC(buf, startAddr, endAddr):
     cBuf = bytearray([0x04,0x0e,0x05,0x01,0xe0,0xfc,CMD_CheckCRC])
     cBuf[2]=3+1+4
     # FIXME: Length check
-    if cBuf == buf[:len(cBuf)]:
+    if len(cBuf) <= len(buf) and cBuf == buf[:len(cBuf)]:
         t=buf[10]
         t=(t<<8)+buf[9]
         t=(t<<8)+buf[8]
@@ -413,14 +413,14 @@ def CheckRespond_CheckCRC(buf, startAddr, endAddr):
 def CheckRespond_StayRom(buf):
     cBuf = bytearray([0x04,0x0e,0x05,0x01,0xe0,0xfc,CMD_StayRom])
     cBuf[2]=3+1+1
-    if cBuf == buf:
+    if len(cBuf) <= len(buf) and cBuf == buf[:len(cBuf)]:
         if buf[7]==0x55:
             return True
     return False
 
 def CheckRespond_SysErr(buf):
     cBuf = bytearray([0x04,0x0e,0x04,0x01,0xe0,0xfc])
-    if cBuf == buf:
+    if len(cBuf) <= len(buf) and cBuf == buf[:len(cBuf)]:
         if buf[6]==0xee:
             return 1
         elif buf[6]==0xfe:
@@ -429,27 +429,27 @@ def CheckRespond_SysErr(buf):
 
 def CheckRespond_FlashEraseAll(buf, status, to_s):
     cBuf = bytearray([0x04,0x0e,0xff,0x01,0xe0,0xfc,0xf4,0x03,0x00,CMD_FlashEraseAll])
-    if cBuf == buf:
+    if len(cBuf) <= len(buf) and cBuf == buf[:len(cBuf)]:
         return True, buf[10], buf[11]
     return False,None,None
 
 def CheckRespond_FlashErase4K(buf, addr):
     cBuf = bytearray([0x04,0x0e,0xff,0x01,0xe0,0xfc,0xf4,0x06,0x00,CMD_FlashErase4K])
-    if cBuf == buf:
+    if len(cBuf) <= len(buf) and cBuf == buf[:len(cBuf)]:
         # TODO memcmp(&buf[11],&addr,4)==0
         return True, buf[10]
     return False
 
 def CheckRespond_FlashErase(buf, addr, szCmd):
     cBuf = bytearray([0x04,0x0e,0xff,0x01,0xe0,0xfc,0xf4,1+1+(1+4), 0x00,CMD_FlashErase])
-    if buf[11] == szCmd and cBuf == buf[:len(cBuf)]:
+    if len(cBuf) <= len(buf) and buf[11] == szCmd and cBuf == buf[:len(cBuf)]:
         # TODO: memcmp(&buf[12],&addr,4)==0
         return True, buf[10]
     return False, None
 
 def CheckRespond_FlashWrite4K(buf, addr):
     cBuf = bytearray([0x04,0x0e,0xff,0x01,0xe0,0xfc,0xf4,1+1+(4),0x00,CMD_FlashWrite4K])
-    if cBuf == buf[:len(cBuf)]:
+    if len(cBuf) <= len(buf) and cBuf == buf[:len(cBuf)]:
         # TODO: memcmp(&buf[11],&addr,4)==0
         return True, buf[10]
     return False, None
@@ -460,28 +460,28 @@ def CheckRespond_FlashRead4K(buf, addr):
     '''
     cBuf = bytearray([0x04,0x0e,0xff,0x01,0xe0,0xfc,0xf4,(1+1+(4+4*1024))&0xff,
         ((1+1+(4+4*1024))>>8)&0xff,CMD_FlashRead4K])
-    if cBuf == buf:
+    if len(cBuf) <= len(buf) and cBuf == buf[:len(cBuf)]:
         # TODO: memcmp(&buf[11],&addr,4)==0
         return True, buf[10], buf[15:]
     return False, None, None
 
 def CheckRespond_FlashWrite(buf, addr):
     cBuf = bytearray([0x04,0x0e,0xff,0x01, 0xe0,0xfc,0xf4,(1+1+(4+1))&0xff, ((1+1+(4+1))>>8)&0xff,CMD_FlashWrite])
-    if cBuf == buf:
+    if len(cBuf) <= len(buf) and cBuf == buf[:len(cBuf)]:
         # TODO: memcmp(&buf[11],&addr,4)==0
         return True, buf[10], buf[15]
     return False, None, None
 
 def CheckRespond_FlashRead(buf, addr, lenObj):
     cBuf = bytearray([0x04,0x0e,0xff,0x01, 0xe0,0xfc,0xf4,(1+1+(4+lenObj))&0xff, ((1+1+(4+lenObj))>>8)&0xff,CMD_FlashRead])
-    if cBuf == buf:
+    if len(cBuf) <= len(buf) and cBuf == buf[:len(cBuf)]:
         # TODO: memcmp(&buf[11],&addr,4)==0
         return True, buf[10], buf[15:]
     return False, None, None
 
 def CheckRespond_FlashReadSR(buf, regAddr):
     cBuf = bytearray([0x04,0x0e,0xff,0x01, 0xe0,0xfc,0xf4,(1+1+(1+1))&0xff, ((1+1+(1+1))>>8)&0xff,CMD_FlashReadSR])
-    if cBuf == buf[:len(cBuf)] and regAddr == buf[11]:
+    if len(cBuf) <= len(buf) and cBuf == buf[:len(cBuf)] and regAddr == buf[11]:
         return True, buf[10], buf[12]
     return False, 0, 0
 
@@ -490,7 +490,7 @@ def CheckRespond_FlashWriteSR(buf, regAddr, val):
         0xe0,0xfc,0xf4,(1+1+(1+1))&0xff,
         ((1+1+(1+1))>>8)&0xff,CMD_FlashWriteSR])
     # print("writeSR: ", buf)
-    if cBuf == buf[:len(cBuf)] and val == buf[12] and regAddr == buf[11]:
+    if len(cBuf) <= len(buf) and cBuf == buf[:len(cBuf)] and val == buf[12] and regAddr == buf[11]:
         return True, buf[10]
     return False, None
 
@@ -499,7 +499,7 @@ def CheckRespond_FlashWriteSR2(buf, regAddr, val):
         0xe0,0xfc,0xf4,(1+1+(1+2))&0xff,
         ((1+1+(1+2))>>8)&0xff,CMD_FlashWriteSR])
     # print("writeSR2: ", buf)
-    if cBuf == buf[:len(cBuf)] and val&0xFF == buf[12] and ((val>>8)&0xFF) == buf[13]:
+    if len(cBuf) <= len(buf) and cBuf == buf[:len(cBuf)] and val&0xFF == buf[12] and ((val>>8)&0xFF) == buf[13]:
         return True, buf[10]
     return False, None
 
@@ -507,7 +507,7 @@ def CheckRespond_FlashGetMID(buf):
     cBuf = bytearray([0x04,0x0e,0xff,0x01,
         0xe0,0xfc,0xf4,(1+4)&0xff,
         ((1+4)>>8)&0xff,CMD_FlashGetMID])
-    if cBuf == buf[:10]:
+    if len(cBuf) <= len(buf) and cBuf == buf[:10]:
         return struct.unpack("<I", buf[11:])[0]>>8
         # return True, buf[10], struct.unpack("<I", buf[11:])[0]>>8
 

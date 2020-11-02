@@ -36,7 +36,8 @@ def crc32_ver2(crc, buf):
 
 class UartDownloader(object):
     def __init__(self, port='/dev/ttyUSB0', baudrate=115200, unprotect=False):
-        self.bootItf = CBootIntf(port, 115200, 0.005)
+        # self.bootItf = CBootIntf(port, 115200, 0.01)
+        self.bootItf = CBootIntf(port, 115200, 0)
         self.target_baudrate = baudrate
         self.unprotect = unprotect
         self.pbar = None
@@ -89,11 +90,12 @@ class UartDownloader(object):
             # time.sleep(0.01)
 
         self.log("Gotten Bus...")
+        time.sleep(0.01)
         self.bootItf.Drain()
 
         # Step3: set baudrate, delay 100ms
         if self.target_baudrate != 115200:
-            if not self.bootItf.SetBR(self.target_baudrate, 50):
+            if not self.bootItf.SetBR(self.target_baudrate, 20):
                 self.log("Set baudrate failed")
                 self.pbar.close()
                 return
