@@ -8,7 +8,7 @@
 # See README for more details.
 
 import time
-from .bootIntf import CBootIntf
+from .boot_intf import CBootIntf
 from serial import Timeout
 import binascii
 from tqdm import tqdm

@@ -1,3 +1,3 @@
 from .hid_download import *
-from .ManageChipList import *
-from .bk_writerView import *
+from .hid_chip_list import *
+from .uart_downloader import *
