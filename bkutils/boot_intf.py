@@ -178,3 +178,11 @@ class CBootIntf(object):
                 return CheckRespond_FlashWriteSR(rxbuf, regAddr, value)
             else:
                 return CheckRespond_FlashWriteSR2(rxbuf, regAddr, value)
+
+    def SendReset(self):
+        txbuf = BuildCmd_RESET()
+        self.Start_Cmd(txbuf)
+
+    def SendReboot(self):
+        txbuf = BuildCmd_Reboot()
+        self.Start_Cmd(txbuf)

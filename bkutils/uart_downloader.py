@@ -233,6 +233,11 @@ class UartDownloader(object):
             self._Do_Boot_ProtectFlash(mid, False)
 
         self.log("Write Successful")
+
+        for i in range(3):
+            time.sleep(0.01)
+            self.bootItf.SendReboot()
+
         self.pbar.close()
 
     def _Do_Boot_ProtectFlash(self, mid:int, unprotect:bool):

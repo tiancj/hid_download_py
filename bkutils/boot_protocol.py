@@ -18,6 +18,7 @@ CMD_CheckCRC=0x10
 CMD_Reboot=0x0e
 CMD_StayRom=0xaa
 CMD_Reset=0xfe
+CMD_RESET=0x70
 CMD_FlashEraseAll=0x0a
 CMD_FlashErase4K=0x0b
 CMD_FlashErase=0x0f
@@ -127,7 +128,7 @@ def BuildCmd_Reboot():
     buf[5]=0xa5
     return buf[:length+4]
 
-
+# !BK7236 & !BK7231N
 def BuildCmd_Reset():
     length=1+(4)
     buf = bytearray(4096)
@@ -142,6 +143,20 @@ def BuildCmd_Reset():
     buf[8]=0x27
     return buf[:length+4]
 
+# BK7236 & BK7231N
+def BuildCmd_RESET():
+    length=1+(4)
+    buf = bytearray(4096)
+    buf[0]=0x01
+    buf[1]=0xe0
+    buf[2]=0xfc
+    buf[3]=length
+    buf[4]=CMD_RESET
+    buf[5]=0x53
+    buf[6]=0x45
+    buf[7]=0x41
+    buf[8]=0x4E
+    return buf[:length+4]
 
 def BuildCmd_StayRom():
     length=1+(1)
