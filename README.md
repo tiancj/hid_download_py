@@ -3,7 +3,7 @@
 ## Installation
 
 ```
-$ apt install python3-hid python3-serial
+$ apt install python3-hid python3-serial python3-tqdm
 $ python3 setup.py install --user
 ```
 
@@ -12,8 +12,8 @@ $ python3 setup.py install --user
 ## SPI Usage
 
 ```
-bekenprogram -h
-usage: bekenprogram [-h] [-c {bk7231,bk7231s,bk7231u,bk7221u,bk7251}] [-m {soft,hard}] filename
+hidprogram -h
+usage: hidprogram [-h] [-c {bk7231,bk7231s,bk7231u,bk7221u,bk7251}] [-m {soft,hard}] filename
 
 Beken HID Downloader.
 
@@ -50,7 +50,7 @@ optional arguments:
   -u, --unprotect       unprotect flash first, used by BK7231N
 ```
 
-* For chips exclude BK7231N, download address defaults to `0x11000`, **don't** set `-u` option.
+* For chips exclude `BK7231N`, download address defaults to `0x11000`, **don't** set `-u` option.
 
-* For BK7231N, set download address to `0x0`, and **set** `-u` option.
+* For `BK7231N`, set download address to `0x0`, and **set** `-u` option.
 

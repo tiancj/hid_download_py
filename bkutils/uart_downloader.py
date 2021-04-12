@@ -49,7 +49,7 @@ class UartDownloader(object):
         if not self.pbar:
             print("{}".format(text))
         else:
-            self.pbar.set_description("{}".format(text))
+            self.pbar.set_description("{:<16}".format(text))
 
     def programm(self, filename, startAddr=0x11000):
 
@@ -73,7 +73,8 @@ class UartDownloader(object):
         # reboot = "reboot"
         # self.bootItf.Start_Cmd(reboot)
         # time.sleep(0.1)
-        self.pbar = tqdm(total=total_num, ncols=80)
+        self.pbar = tqdm(total=total_num, ascii=True, ncols=80, unit_scale=True,
+                unit='k', bar_format='{desc}|{bar}|[{rate_fmt:>8]')
         self.log("Getting Bus...")
         timeout = Timeout(10)
 
@@ -108,7 +109,7 @@ class UartDownloader(object):
             self._Do_Boot_ProtectFlash(mid, True)
             # unprotect flash first
 
-        # Step4: erase 
+        # Step4: erase
         # Step4.1: read first 4k if startAddr not aligned with 4K
         eraseAddr = startAddr
         ss = s0 = eraseAddr & 0xfffff000     # 4K对齐的地址
@@ -134,7 +135,7 @@ class UartDownloader(object):
 
             if filOLen <= 0:
                 # TODO: goto crc check
-                return 
+                return
 
 
         # Step4.2: handle the last 4K
@@ -165,8 +166,8 @@ class UartDownloader(object):
                 return
             # print(time.time())
 
-            filEPtr = filEPtr - (s1&0xfff) 
-            filOLen = filOLen - (s1&0xfff) 
+            filEPtr = filEPtr - (s1&0xfff)
+            filOLen = filOLen - (s1&0xfff)
             if filOLen <= 0:
                 # TODO: goto crc check
                 pass
