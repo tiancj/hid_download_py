@@ -7,7 +7,7 @@
 # This software may be distributed under the terms of the BSD license.
 # See README for more details.
 
-# uart wrapper 
+# uart wrapper
 import serial
 from serial import Timeout
 from .boot_protocol import *
@@ -91,18 +91,26 @@ class CBootIntf(object):
         return read_buf
         # return None
 
-    def LinkCheck(self):
-        txbuf = BuildCmd_LinkCheck()
-        rxbuf = self.Start_Cmd(txbuf, CalcRxLength_LinkCheck(), 0.001)
-        if rxbuf:
-            # print('RX2: ', binascii.b2a_hex(rxbuf, b' '))
-            if CheckRespond_LinkCheck(rxbuf):
-                return True
-        return False
+    def LinkCheck(self, stay_in_rom=False):
+        if not stay_in_rom:
+            txbuf = BuildCmd_LinkCheck()
+            rxbuf = self.Start_Cmd(txbuf, CalcRxLength_LinkCheck(), 0.001)
+            if rxbuf:
+                # print('RX2: ', binascii.b2a_hex(rxbuf, b' '))
+                if CheckRespond_LinkCheck(rxbuf):
+                    return True
+            return False
+        else:
+            txbuf = BuildCmd_StayRom()
+            rxbuf = self.Start_Cmd(txbuf, CalcRxLength_StayRom(), 0.001)
+            if rxbuf:
+                if CheckRespond_StayRom(rxbuf):
+                    return True
+            return False
 
     def SetBR(self, baudrate, delay):
         txbuf = BuildCmd_SetBaudRate(baudrate, delay)
-        self.Start_Cmd(txbuf, 0, 0.05)   # 
+        self.Start_Cmd(txbuf, 0, 0.05)   #
         time.sleep(delay/1000/2)
         self.ser.baudrate = baudrate
         rxbuf = self.WaitForRespond(CalcRxLength_SetBaudRate(), 0.5)

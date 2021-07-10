@@ -29,11 +29,13 @@ FLASH_ID_ESMT_25QH16B=0x0015701c
 FLASH_ID_GD_25WQ64E=0x001765c8
 FLASH_ID_GD_25WQ32E=0x001665c8
 FLASH_ID_GD_25WQ16E=0x001565c8
+FLASH_ID_TH25Q_16HB = 0x001560eb
+FLASH_ID_NA = 0x001640c8
 
 FLASH_ID_UNKNOWN=-1
 
 class FlashInt:
-    def __init__(self, mid, icNam, manName, szMem, szSR, 
+    def __init__(self, mid, icNam, manName, szMem, szSR,
             cwUnp, cwEnp, cwMsk, sb, lb, cwdRd, cwdWr):
         self.mid = mid
         self.icNam = icNam
@@ -55,7 +57,7 @@ def BIT(n):
     return 1<<n
 
 tblFlashInt = [
-    #        MID                      IC Name         manufactor     size        # SR  unprot    prot       mask                sb    length  
+    #        MID                      IC Name         manufactor     size        # SR  unprot    prot       mask                  sb    length
     FlashInt(FLASH_ID_XTX_25F08B,     "PN25F08B",     "xtx",      8 *1024*1024,   1,    0x00,    0x07,   BFD(0x0f,2,4),           2,    4,    [0x05,0xff,0xff,0xff],   [0x01,0xff,0xff,0xff]),
     FlashInt(FLASH_ID_XTX_25F04B,     "PN25F04B",     "xtx",      4 *1024*1024,   1,    0x00,    0x07,   BFD(0x0f,2,4),           2,    4,    [0x05,0xff,0xff,0xff],   [0x01,0xff,0xff,0xff]),
     FlashInt(FLASH_ID_GD_25D40,       "GD25D40",      "GD",       4 *1024*1024,   1,    0x00,    0x07,   BFD(0x0f,2,3),           2,    3,    [0x05,0xff,0xff,0xff],   [0x01,0xff,0xff,0xff]),
@@ -77,6 +79,8 @@ tblFlashInt = [
     FlashInt(FLASH_ID_XTX_25Q64B,     "XT25Q64B",     "xtx",     64 *1024*1024,   2,    0x00,    0x07,   BIT(14)|BFD(0x1f,2,5),   2,    5,    [0x05,0x35,0xff,0xff],   [0x01,0xff,0xff,0xff]),
     FlashInt(FLASH_ID_WB_25Q128JV,    "WB25Q128JV",   "WB",     128 *1024*1024,   2,    0x00,    0x07,   BIT(14)|BFD(0x1f,2,5),   2,    5,    [0x05,0x35,0xff,0xff],   [0x01,0xff,0xff,0xff]),
     FlashInt(FLASH_ID_ESMT_25QH16B,   "EN25QH16B",    "ESMT",    16 *1024*1024,   1,    0x00,    0x07,   BFD(0xf,2,5),            2,    4,    [0x05,0xff,0xff,0xff],   [0x01,0xff,0xff,0xff]),
+    FlashInt(FLASH_ID_TH25Q_16HB,     "TH25Q_16HB",   "TH",      16 *1024*1024,   2,    0x00,    0x07,   BIT(14)|BFD(0x1f,2,5),   2,    5,    [0x05,0x35,0xff,0xff],   [0x01,0xff,0xff,0xff]),
+    FlashInt(FLASH_ID_NA,             "NA_NA",        "NA",      32 *1024*1024,   2,    0x00,    0x07,   BIT(14)|BFD(0x1f,2,5),   2,    5,    [0x05,0x35,0xff,0xff],   [0x01,0xff,0xff,0xff]),
     FlashInt(FLASH_ID_GD_25WQ16E,     "GD25WQ16E",    "GD",      16 *1024*1024,   2,    0x00,    0x07,   BIT(14)|BFD(0x1f,2,5),   2,    5,    [0x05,0x35,0xff,0xff],   [0x01,0xff,0xff,0xff]),
     FlashInt(FLASH_ID_GD_25WQ32E,     "GD25WQ32E",    "GD",      32 *1024*1024,   2,    0x00,    0x07,   BIT(14)|BFD(0x1f,2,5),   2,    5,    [0x05,0x35,0xff,0xff],   [0x01,0xff,0xff,0xff]),
     FlashInt(FLASH_ID_GD_25WQ64E,     "GD25WQ64E",    "GD",      64 *1024*1024,   2,    0x00,    0x07,   BIT(14)|BFD(0x1f,2,5),   2,    5,    [0x05,0x35,0xff,0xff],   [0x01,0xff,0xff,0xff]),

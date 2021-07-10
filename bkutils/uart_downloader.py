@@ -74,7 +74,7 @@ class UartDownloader(object):
         # self.bootItf.Start_Cmd(reboot)
         # time.sleep(0.1)
         self.pbar = tqdm(total=total_num, ascii=True, ncols=80, unit_scale=True,
-                unit='k', bar_format='{desc}|{bar}|[{rate_fmt:>8]')
+                unit='k', bar_format='{desc}|{bar}|[{rate_fmt:>8}]')
         self.log("Getting Bus...")
         timeout = Timeout(10)
 
@@ -105,8 +105,10 @@ class UartDownloader(object):
         if self.unprotect:
             # Get Mid
             mid = self.bootItf.GetFlashMID()
-            # print("mid: {:x}".format(mid))
-            self._Do_Boot_ProtectFlash(mid, True)
+            # print("\n\n mid: {:x}\n\n".format(mid))
+            if self._Do_Boot_ProtectFlash(mid, True) != 1:
+                self.log("Unprotect Failed")
+                return
             # unprotect flash first
 
         # Step4: erase
