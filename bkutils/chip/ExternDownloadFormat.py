@@ -1,6 +1,6 @@
 import time
-import struct 
-from ..commands import *
+import struct
+from ..hid_commands import *
 
 FT_MSG_SIZE_FLASH = 0x40
 
@@ -109,7 +109,7 @@ def CHIP_EXTERN_Erase(hid_downloader):
 def CHIP_EXTERN_End(hid_downloader):
     hidDev = hid_downloader.dev
     RunStatu = True
-    
+
     Id = Read_ID(hidDev)
 
     if Id == 0x001340C8 or Id == 0x001640C8:
