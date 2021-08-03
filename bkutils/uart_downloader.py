@@ -51,6 +51,12 @@ class UartDownloader(object):
         else:
             self.pbar.set_description("{:<16}".format(text))
 
+    def do_reset_signal(self):
+        self.bootItf.ser.dtr = 0
+        self.bootItf.ser.rts = 1
+        time.sleep(0.2)
+        self.bootItf.ser.rts = 0
+
     def programm(self, filename, startAddr=0x11000):
 
         # Step1: read file into system memory
@@ -69,7 +75,7 @@ class UartDownloader(object):
         total_num = filOLen // 0x1000
 
 
-        # do_reset_signal()
+        self.do_reset_signal()
         # reboot = "reboot"
         # self.bootItf.Start_Cmd(reboot)
         # time.sleep(0.1)
