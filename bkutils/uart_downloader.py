@@ -85,6 +85,7 @@ class UartDownloader(object):
         timeout = Timeout(10)
 
         # Step2: Link Check
+        count = 0
         while True:
             r = self.bootItf.LinkCheck()
             if r:
@@ -93,7 +94,10 @@ class UartDownloader(object):
                 self.log('Cannot get bus.')
                 self.pbar.close()
                 return
-            # self.bootItf.Start_Cmd(reboot)
+            count += 1
+            if count > 500:
+                self.bootItf.Start_Cmd("reboot\r\n")
+                count = 0
             # time.sleep(0.01)
 
         self.log("Gotten Bus...")
