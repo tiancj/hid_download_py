@@ -96,7 +96,7 @@ class UartDownloader(object):
                 return
             count += 1
             if count > 500:
-                self.bootItf.Start_Cmd("reboot\r\n")
+                self.bootItf.Start_Cmd(b"reboot\r\n")
                 count = 0
             # time.sleep(0.01)
 
