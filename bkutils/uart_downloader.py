@@ -9,12 +9,15 @@
 
 import time
 from .boot_intf import CBootIntf
+import serial 
 from serial import Timeout
+#from serial import serialutil
 import binascii
 from tqdm import tqdm
 from .flash_list import *
 
 debug = False
+
 
 # make crc32 table
 crc32_table = []
@@ -37,11 +40,12 @@ def crc32_ver2(crc, buf):
 class UartDownloader(object):
     def __init__(self, port='/dev/ttyUSB0', baudrate=115200, unprotect=False):
         # self.bootItf = CBootIntf(port, 115200, 0.01)
-        self.bootItf = CBootIntf(port, 115200, 0)
+
         self.target_baudrate = baudrate
         self.unprotect = unprotect
         self.pbar = None
-
+        self.bootItf = CBootIntf(port, 115200, 0)
+        
     def log(self, text):
         """
         print text to tqdm progress bar
@@ -57,7 +61,97 @@ class UartDownloader(object):
         time.sleep(0.2)
         self.bootItf.ser.rts = 0
 
+    def read(self, filename, startAddr=0x11000, length=0x119000):
+        self.do_reset_signal()
+        self.log("Getting Bus...")
+        timeout = Timeout(10)
+
+        fileBuf = b''
+        total_num = length // 0x1000
+        #self.pbar = tqdm(total=total_num, ascii=True, ncols=80, unit_scale=True,
+        #        unit='k', bar_format='{desc}|{bar}|[{rate_fmt:>8}]')
+
+        # Step2: Link Check
+        count = 0
+        while True:
+            r = self.bootItf.LinkCheck()
+            if r:
+                break
+            if timeout.expired():
+                self.log('Cannot get bus.')
+                self.pbar.close()
+                return
+            count += 1
+            if count > 500:
+                self.bootItf.Start_Cmd(b"reboot\r\n")
+                count = 0
+            # time.sleep(0.01)
+
+        self.log("Gotten Bus...")
+        time.sleep(0.01)
+        self.bootItf.Drain()
+
+        # Step3: set baudrate, delay 100ms
+        if self.target_baudrate != 115200:
+            if not self.bootItf.SetBR(self.target_baudrate, 20):
+                self.log("Set baudrate failed")
+                #self.pbar.close()
+                return
+            self.log("Set baudrate successful")
+
+        if self.unprotect:
+            # Get Mid
+            mid = self.bootItf.GetFlashMID()
+            # print("\n\n mid: {:x}\n\n".format(mid))
+            if self._Do_Boot_ProtectFlash(mid, True) != 1:
+                self.log("Unprotect Failed")
+                return
+            # unprotect flash first
+
+        # Step: Read data
+        i = 0
+        ss = startAddr & 0xfffff000     # 4K对齐的地址
+        self.log("len: {:x}".format(length))
+        while i < length:
+            #self.log("Reading {:x}".format(ss+i))
+            data = self.bootItf.ReadSector(ss+i)
+            if data:
+                #self.log("ReadSector Success {:x}".format(ss+i) + " len "+ "{:x}".format(len(data)))
+                fileBuf += data
+                if self.pbar:
+                    self.pbar.update(1)
+            else:
+                #self.pbar.close()
+                self.log("ReadSector Failed {:x}".format(ss+i))
+                return
+            i += 0x1000
+            self.log(i)
+
+        #self.pbar.close()
+        self.pbar = None
+        
+        if self.unprotect:
+            self._Do_Boot_ProtectFlash(mid, False)
+
+        success, crc = self.bootItf.ReadCRC(startAddr, ss+i)
+        self.log("CRC should be {:x}".format(crc))
+        fileCrc = crc32_ver2(0xffffffff, fileBuf)
+        self.log("CRC is {:x}".format(fileCrc))
+
+        if fileCrc == crc:
+            f = open(filename, "wb")
+            f.write(fileBuf)
+            f.close()
+            self.log("Wrote {:x} bytes to ".format(i) + filename)
+        else:
+            self.log("CRC check failed")
+
+        return
+
+
     def programm(self, filename, startAddr=0x11000):
+        if self.read:
+            return
 
         # Step1: read file into system memory
         # TODO: sanity check

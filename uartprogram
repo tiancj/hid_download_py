@@ -12,7 +12,7 @@ import sys
 import os
 import argparse
 from bkutils import UartDownloader
-import hid
+# import hid
 import threading
 
 # parse commandline arguments
@@ -25,11 +25,18 @@ def parse_args():
     parser.add_argument('-s', '--startaddr', type=lambda  x: int(x, 16),
                         default=0x11000,
                         help="burn flash address, defaults to 0x11000")
+    parser.add_argument('-l', '--length', type=lambda  x: int(x, 16),
+                        default=0x119000,
+                        help="length to read, defaults to 0x1000")
     parser.add_argument('-b', '--baudrate', type=int,
                         default=1500000,
                         help="burn uart baudrate, defaults to 1500000")
     parser.add_argument('-u', '--unprotect', action="store_true",
                         help="unprotect flash first, used by BK7231N")
+    parser.add_argument('-r', '--read', action="store_true",
+                        help="read flash")
+    parser.add_argument('-w', '--write', action="store_true",
+                        help="read flash")
     parser.add_argument('filename',
                         help='specify file_crc.bin')
     args = parser.parse_args()
@@ -39,4 +46,8 @@ def parse_args():
 args = parse_args()
 
 downloader = UartDownloader(args.device, args.baudrate, args.unprotect)
-downloader.programm(args.filename, args.startaddr)
+if args.read:
+    downloader.read(args.filename, args.startaddr, args.length)
+else:
+    if args.write:
+        downloader.programm(args.filename, args.startaddr)
