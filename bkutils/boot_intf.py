@@ -30,7 +30,7 @@ class CBootIntf(object):
     def Start_Cmd(self, txbuf, rxLen=0, timeout=0.05):
         if debug:
             # print("TX: ", binascii.b2a_hex(txbuf if len(txbuf) < 16 else txbuf[:16], b' '))
-            print("TX: ", binascii.b2a_hex(txbuf, b' '))
+            print("TX: ", binascii.b2a_hex(txbuf))
         self.rxLen = rxLen
         if debug:
             print("tx start: ", time.time())
@@ -45,8 +45,10 @@ class CBootIntf(object):
             rxbuf = self.WaitForRespond(rxLen, timeout)
             if debug and rxbuf:
                 print("read end: ", time.time())
-                print('RX1: ', binascii.b2a_hex(rxbuf, b' '))
-                print('RXS: ', rxbuf)
+                print('RX1: ', binascii.b2a_hex(rxbuf[0:32]))
+                #print('RXS: ', rxbuf)
+                print('rxLen: ', rxLen)
+                print('bufLen: ', len(rxbuf))
             # if rxbuf and (len(rxbuf) == rxLen):
             #   return rxbuf
             return rxbuf
@@ -68,26 +70,33 @@ class CBootIntf(object):
 
         while not timeout.expired():
             buf = self.ser.read(1024)
+            read_buf += buf
             if debug:
-                print('RX1: ', binascii.b2a_hex(buf, b' '))
+                if len(buf):
+                    #print('RX1: ', binascii.b2a_hex(buf))
+                    print('Total: ', len(read_buf))
+                    print('Of: ', rxLen)
+
             if state == RECV_HEAD:
-                while buf:
-                    pos = buf.find(b'\x04')
+                while len(read_buf):
+                    pos = read_buf.find(b'\x04')
                     if pos < 0:
-                        buf = None
+                        read_buf = b''
                         break
-                    buf = buf[pos:]
-                    if len(buf) >= 7: # minimal len
-                        if buf[0:2] == b'\x04\x0e' and buf[3:6] == b'\x01\xe0\xfc': # maybe a valid rx packet
-                            read_buf += buf
+                    read_buf = read_buf[pos:]
+                    if len(read_buf) >= 7: # minimal len
+                        if read_buf[0:2] == b'\x04\x0e' and read_buf[3:6] == b'\x01\xe0\xfc': # maybe a valid rx packet
                             state = RECV_BODY
                             break
-                    buf = buf[1:] # forward to next
+                        read_buf = read_buf[1:] # forward to next
+                    else:
+                        break # get more bytes
             if state == RECV_BODY:
-                break
-        read_buf = buf
-        if debug and read_buf:
-            print("RDBUF:", read_buf)
+                if len(read_buf) >= rxLen:
+                    break
+        #read_buf = buf
+        #if debug and read_buf:
+            #print("RDBUF:", read_buf)
         return read_buf
         # return None
 
@@ -122,7 +131,7 @@ class CBootIntf(object):
 
     def ReadSector(self, addr):
         txbuf = BuildCmd_FlashRead4K(addr)
-        rxbuf = self.Start_Cmd(txbuf, CalcRxLength_FlashRead4K())
+        rxbuf = self.Start_Cmd(txbuf, CalcRxLength_FlashRead4K(), 5)
         if rxbuf:
             ret, _, data = CheckRespond_FlashRead4K(rxbuf, addr)
             if ret:
