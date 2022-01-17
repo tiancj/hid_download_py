@@ -12,6 +12,7 @@ import sys
 import os
 import argparse
 from bkutils import UartDownloader
+from bkutils import Unpackager
 # import hid
 import threading
 
@@ -37,6 +38,8 @@ def parse_args():
                         help="read flash")
     parser.add_argument('-w', '--write', action="store_true",
                         help="read flash")
+    parser.add_argument('-p', '--unpackage', action="store_true",
+                        help="unPackage firmware")
     parser.add_argument('filename',
                         help='specify file_crc.bin')
     args = parser.parse_args()
@@ -45,9 +48,12 @@ def parse_args():
 
 args = parse_args()
 
-downloader = UartDownloader(args.device, args.baudrate, args.unprotect)
-if args.read:
-    downloader.read(args.filename, args.startaddr, args.length)
+if args.unpackage:
+    Unpackager(args.filename, args.filename + '.unpackage.bin')
 else:
-    if args.write:
-        downloader.programm(args.filename, args.startaddr)
+    downloader = UartDownloader(args.device, args.baudrate, args.unprotect)
+    if args.read:
+        downloader.read(args.filename, args.startaddr, args.length)
+    else:
+        if args.write:
+            downloader.programm(args.filename, args.startaddr)
