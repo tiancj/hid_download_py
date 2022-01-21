@@ -45,6 +45,7 @@ class UartDownloader(object):
         self.unprotect = unprotect
         self.pbar = None
         self.bootItf = CBootIntf(port, 115200, 0)
+        self.log("UartDownloader....")
         
     def log(self, text):
         """
@@ -150,8 +151,7 @@ class UartDownloader(object):
 
 
     def programm(self, filename, startAddr=0x11000):
-        if self.read:
-            return
+        self.log("programm....")
 
         # Step1: read file into system memory
         # TODO: sanity check
