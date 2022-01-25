@@ -10,6 +10,8 @@ It has been modified to
 
 2/ unPackage and 'decrypt' a flash image
 
+3/ spiprogram has been added - this works on a Raspberry pi using it's native SPI - see SPIFlash.md and rpi3install.md
+
 * pairs with https://github.com/btsimonh/tuya-iotos-embeded-sdk-wifi-ble-bk7231t
 
 
