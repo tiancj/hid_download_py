@@ -28,7 +28,7 @@ def parse_args():
                         help="burn flash address, defaults to 0x11000")
     parser.add_argument('-l', '--length', type=lambda  x: int(x, 16),
                         default=0x119000,
-                        help="length to read, defaults to 0x1000")
+                        help="length to read, defaults to 0x119000")
     parser.add_argument('-b', '--baudrate', type=int,
                         default=1500000,
                         help="burn uart baudrate, defaults to 1500000")
@@ -37,7 +37,7 @@ def parse_args():
     parser.add_argument('-r', '--read', action="store_true",
                         help="read flash")
     parser.add_argument('-w', '--write', action="store_true",
-                        help="read flash")
+                        help="write flash")
     parser.add_argument('-p', '--unpackage', action="store_true",
                         help="unPackage firmware")
     parser.add_argument('filename',
