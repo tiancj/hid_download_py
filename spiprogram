@@ -1,0 +1,87 @@
+#!/usr/bin/env python3
+# encoding: utf8
+#
+# SPI Download Tool - for use on RPI, for example
+#
+# Copyright (c) BekenCorp. (chunjian.tian@bekencorp.com).  All rights reserved.
+# Copyright (c) Btsimonh. All rights reserved on modifications.
+#
+# This software may be distributed under the terms of the BSD license.
+# See README for more details.
+
+import sys
+import os
+import argparse
+import bkutils
+from .bkutils.spi_download import *
+from .bkutils.hid_commands import *
+
+
+chip_map = {
+    "bk7231": bkutils.CHIP_TYPE_BK7231,
+    "bk7231s": bkutils.CHIP_TYPE_BK7231U,
+    "bk7231u": bkutils.CHIP_TYPE_BK7231U,
+    "bk7231n": bkutils.CHIP_TYPE_BK7231U,
+    "bk7221u": bkutils.CHIP_TYPE_BK7221U,
+    "bk7251": bkutils.CHIP_TYPE_BK7251,
+}
+
+# parse commandline arguments
+def parse_args():
+    description = '''Btsimonh SPI Downloader.'''
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument('-c', '--chip',
+                        default='bk7231u',
+                        choices=chip_map.keys(),
+                        help="chip type, defaults to bk7231u")
+    parser.add_argument('-s', '--startaddr', type=lambda  x: int(x, 16),
+                        default=0x11000,
+                        help="burn flash address, defaults to 0x11000")
+    parser.add_argument('-b', '--baudrate', type=int,
+                        default=61000,
+                        help="burn uart baudrate, defaults to 61000")
+    parser.add_argument('-e', '--erasemode', type=int,
+                        default=0,
+                        help="erase mode 0=only sectors (default), 2=whole chip")
+    parser.add_argument('-r', '--read', action="store_true",
+                        help="read flash")
+    parser.add_argument('-l', '--length', type=lambda  x: int(x, 16),
+                        default=0x119000,
+                        help="length to read, defaults to 0x119000")
+    parser.add_argument('-w', '--write', action="store_true",
+                        help="write flash")
+    parser.add_argument('-u', '--unprotect', action="store_true",
+                        help="unprotect flash first, used by BK7231N")
+    parser.add_argument('-r', '--read', action="store_true",
+                        help="read flash")
+    parser.add_argument('filename',
+                        help='specify file_crc.bin')
+    args = parser.parse_args()
+
+    return args
+
+# list all chips this tool supports
+def show_all_chips():
+    print("Available:")
+    for c in chip_map.keys():
+        print("\t{}".format(c))
+    sys.exit(-1)
+
+args = parse_args()
+filename = args.filename
+chip_type = args.chip
+if chip_type not in chip_map:
+    print("Cannot find chip: {}".format(chip_type))
+    show_all_chips()
+if not os.path.exists(filename):
+    print("file: {} not exist".format(filename))
+    sys.exit(-1)
+
+
+downloader = SpiDownloader(chip_map[chip_type], path=path, erase_mode=erasemode, extra=index, startaddr, baudrate, length)
+if read:
+    downloader.Download(filename)
+else:
+    if write:
+        downloader.Read(filename)
+
