@@ -14,7 +14,7 @@ from .boot_protocol import *
 import binascii
 import time
 
-debug = True
+debug = False
 
 RECV_HEAD = 0
 RECV_BODY = 1
