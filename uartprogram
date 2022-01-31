@@ -30,8 +30,8 @@ def parse_args():
                         default=0x119000,
                         help="length to read, defaults to 0x119000")
     parser.add_argument('-b', '--baudrate', type=int,
-                        default=1500000,
-                        help="burn uart baudrate, defaults to 1500000")
+                        default=921600,
+                        help="burn uart baudrate, defaults to 921600")
     parser.add_argument('-u', '--unprotect', action="store_true",
                         help="unprotect flash first, used by BK7231N")
     parser.add_argument('-r', '--read', action="store_true",

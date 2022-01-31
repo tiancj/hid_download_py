@@ -64,11 +64,11 @@ class UartDownloader(object):
 
     def read(self, filename, startAddr=0x11000, length=0x119000):
         self.do_reset_signal()
-        self.log("Getting Bus...")
+        self.log("Read Getting Bus...")
         timeout = Timeout(10)
 
         fileBuf = b''
-        total_num = length // 0x1000
+        total_num = length # 0x1000
         #self.pbar = tqdm(total=total_num, ascii=True, ncols=80, unit_scale=True,
         #        unit='k', bar_format='{desc}|{bar}|[{rate_fmt:>8}]')
 
@@ -89,7 +89,7 @@ class UartDownloader(object):
             # time.sleep(0.01)
 
         self.log("Gotten Bus...")
-        time.sleep(0.01)
+        time.sleep(0.1)
         self.bootItf.Drain()
 
         # Step3: set baudrate, delay 100ms
@@ -113,11 +113,16 @@ class UartDownloader(object):
         i = 0
         ss = startAddr & 0xfffff000     # 4K对齐的地址
         self.log("len: {:x}".format(length))
+        self.log("startAddr: {:x}".format(ss))
+        
         while i < length:
-            #self.log("Reading {:x}".format(ss+i))
+            self.log("Reading {:x}".format(ss+i))
             data = self.bootItf.ReadSector(ss+i)
             if data:
-                #self.log("ReadSector Success {:x}".format(ss+i) + " len "+ "{:x}".format(len(data)))
+                self.log("ReadSector Success {:x}".format(ss+i) + " len {:x}".format(len(data)))
+                if len(data) != 0x1000:
+                    self.log("ReadSector Failed, len not 0x1000 {:x}".format(len(data)))
+                    return
                 fileBuf += data
                 if self.pbar:
                     self.pbar.update(1)
