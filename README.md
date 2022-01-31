@@ -1,3 +1,7 @@
+# NOTE- THIS REPO HAS MOVE TO https://github.com/OpenBekenIOT
+
+
+
 # What is this?
 
 This repo is a fork of a Beken repo which can program BK7321 series devices over serial using the serial bootloader.
