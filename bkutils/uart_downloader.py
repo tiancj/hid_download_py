@@ -232,7 +232,10 @@ class UartDownloader(object):
             l2 = (fileLen & ~0xff) + 0x100
         else:
             l2 = fileLen
-        ret,crc = self.bootItf.ReadCRC(startAddr, startAddr+l2-1)
+        crcTo = fileLen * 15 / 1024 / 1024
+        if crcTo < 15:
+            crcTo = 15
+        ret, crc = self.bootItf.ReadCRC(startAddr, startAddr+l2-1, crcTo)
         if not ret:
             self.log("Read CRC Failed")
             self.pbar.close()

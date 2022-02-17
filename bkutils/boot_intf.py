@@ -147,14 +147,14 @@ class CBootIntf(object):
                 return True
         return False
 
-    def ReadCRC(self, start, end):
+    def ReadCRC(self, start, end, timeout=5):
         '''
         Read crc of flash region from @start to @end
 
         return (True_or_False, crc)
         '''
         txbuf = BuildCmd_CheckCRC(start, end)
-        rxbuf = self.Start_Cmd(txbuf, CalcRxLength_CheckCRC(), 5)
+        rxbuf = self.Start_Cmd(txbuf, CalcRxLength_CheckCRC(), timeout)
         if rxbuf:
             return CheckRespond_CheckCRC(rxbuf, start, end)
         return False,0
