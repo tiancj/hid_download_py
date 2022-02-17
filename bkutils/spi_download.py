@@ -261,15 +261,14 @@ class SpiDownloader:
 
         while count < size:
             if self.erase_mode != ERASE_ALL:
-                if !(addr & 0xfff):
+                if not (addr & 0xfff):
                     CHIP_ENABLE_Command(self.spi)
                     send_buf = bytearray(4+256)
                     send_buf[0] = 0x20
                     send_buf[1] = (addr & 0xFF0000) >> 16
                     send_buf[2] = (addr & 0xFF00) >> 8
                     send_buf[3] = addr & 0xFF
-                    send_buf[4:4+256] = 
-                    self.spi.xfer(send_buf)
+                    send_buf[4:4+256] = self.spi.xfer(send_buf)
                     Wait_Busy_Down(self.spi)
 
             buf = f.read(256)
