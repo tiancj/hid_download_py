@@ -33,6 +33,11 @@ run install.bat to install the needed packages
 
 ## SPI Usage
 
+see SPIFlash.md for instructions on how to unbrick devices using a raspberry pi...
+
+
+## HID Usage
+
 (disabled in this repo)
 
 ```
@@ -74,7 +79,7 @@ optional arguments:
   -l LENGTH, --length LENGTH
                         length to read, defaults to 0x1000
   -b BAUDRATE, --baudrate BAUDRATE
-                        burn uart baudrate, defaults to 1500000
+                        burn uart baudrate, defaults to 921600
   -u, --unprotect       unprotect flash first, used by BK7231N
   -r, --read            read flash
   -w, --write           read flash
@@ -85,6 +90,7 @@ optional arguments:
 
 * For `BK7231N`, set download address to `0x0`, and **set** `-u` option.
 
+* note that the default baud rate is 921600 - it connects first at 115200, then sends a command to change the baudrate.  So if you get a connection, but then 'Set Baudrate Failed', it could be that your connections/uart are not capable of the default 921600 baud, so try a lower one.  If you get 'write sector failed', this can also be a mis-communication, so lower the baud rate.  Common 'faster' baud rates are 115200, 230400, 460800, 576000, 921600, 1500000.  uartprogram's default used to be 1.5Mbit, but we reduced it to 921600 for better reliability - but this may still be too high for some USB devices & connections.
 
 ## examples:
 
