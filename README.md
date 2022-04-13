@@ -2,6 +2,10 @@
 
 This repo is a fork of a Beken repo which can program BK7321 series devices over serial using the serial bootloader.
 
+It is mostly used to flash our Tasmota replacement on BK7231T/BK7231N, for details see here:
+
+https://github.com/openshwprojects/OpenBK7231T_App
+
 HID has been disabled so that you don't need to find the relevant libraries, to enable easy windows use.
 
 It has been modified to
