@@ -403,6 +403,15 @@ def CheckRespond_WriteReg(buf, regAddr, val):
     return True if len(cBuf) <= len(buf) and cBuf == buf[:len(cBuf)] else False
 
 def CheckRespond_SetBaudRate(buf, baudrate, dly_ms):
+    # It seems like multiple people are affected by the baud rate reply
+    # containing two concatenated messages, with the one we need (baud rate reply)
+    # arriving second. Therefore ignore the unexpected-but-actually-expected
+    # message if it's there.
+    # https://github.com/OpenBekenIOT/hid_download_py/issues/3
+    unexpected = bytearray([0x04, 0x0e, 0x05, 0x01, 0xe0, 0xfc, 0x01, 0x00])
+    if buf[:len(unexpected)] == unexpected:
+        buf = buf[len(unexpected):]
+        print("caution: ignoring unexpected reply in SetBaudRate")
     cBuf =bytearray([0x04,0x0e,0x05,0x01,0xe0,0xfc,CMD_SetBaudRate,0,0,0,0,0])
     cBuf[2]=3+1+4+1
     cBuf[7]=(baudrate&0xff)
