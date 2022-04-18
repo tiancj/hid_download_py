@@ -19,6 +19,16 @@ It has been modified to
 * pairs with https://github.com/btsimonh/tuya-iotos-embeded-sdk-wifi-ble-bk7231t
 
 
+# Detailed examples of flashing Beken chips
+
+Please see our detailed step by step guides for more information:
+
+https://www.elektroda.com/rtvforum/topic3880540.html
+
+https://www.elektroda.com/rtvforum/topic3875654.html
+
+https://www.elektroda.com/rtvforum/topic3874289.html
+
 # Install for Debian/Ubuntu/Linux Mint
 
 ## Installation
