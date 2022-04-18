@@ -16,9 +16,6 @@ It has been modified to
 
 3/ spiprogram has been added - this works on a Raspberry pi using it's native SPI - see SPIFlash.md and rpi3install.md
 
-* pairs with https://github.com/btsimonh/tuya-iotos-embeded-sdk-wifi-ble-bk7231t
-
-
 # Detailed examples of flashing Beken chips
 
 Please see our detailed step by step guides for more information:
