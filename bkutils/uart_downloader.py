@@ -150,7 +150,11 @@ class UartDownloader(object):
             f.close()
             self.log("Wrote {:x} bytes to ".format(i) + filename)
         else:
+            f = open(filename, "wb")
+            f.write(fileBuf)
+            f.close()
             self.log("CRC check failed")
+            self.log("Wrote {:x} bytes to ".format(i) + filename)
 
         return
 
