@@ -93,7 +93,7 @@ optional arguments:
                         burn uart baudrate, defaults to 921600
   -u, --unprotect       unprotect flash first, used by BK7231N
   -r, --read            read flash
-  -w, --write           read flash
+  -w, --write           write flash
   -p, --unpackage       unPackage firmware
 ```
 
