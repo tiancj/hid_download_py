@@ -37,9 +37,10 @@ $ python3 setup.py install --user
 
 ## Windows
 
-Create a python virtual environment
+* Download hidapi from https://github.com/libusb/hidapi/releases, extrat it to somewhere in windows %PATH%
+* Create a python virtual environment
 
-run install.bat to install the needed packages
+* run `install.bat` to install the needed packages
 
 
 ## SPI Usage
