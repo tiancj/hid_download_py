@@ -36,8 +36,7 @@ def crc32_ver2(crc, buf):
 
 class UartDownloader(object):
     def __init__(self, port='/dev/ttyUSB0', baudrate=115200, unprotect=False):
-        # self.bootItf = CBootIntf(port, 115200, 0.01)
-        self.bootItf = CBootIntf(port, 115200, 0)
+        self.bootItf = CBootIntf(port, 115200, 0.001)
         self.target_baudrate = baudrate
         self.unprotect = unprotect
         self.pbar = None
