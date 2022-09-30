@@ -194,3 +194,7 @@ class CBootIntf(object):
     def SendReboot(self):
         txbuf = BuildCmd_Reboot()
         self.Start_Cmd(txbuf)
+
+    def SendBkRegReboot(self):
+        txbuf = BuildCmd_Bkreg_DoReboot()
+        self.Start_Cmd(txbuf)

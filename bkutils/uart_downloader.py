@@ -86,6 +86,8 @@ class UartDownloader(object):
 
         # Step2: Link Check
         count = 0
+        # Send reboot via bkreg
+        self.bootItf.SendBkRegReboot()
         while True:
             r = self.bootItf.LinkCheck()
             if r:
@@ -96,6 +98,9 @@ class UartDownloader(object):
                 return
             count += 1
             if count > 500:
+                # Send reboot via bkreg
+                self.bootItf.SendBkRegReboot()
+                # Send reboot via command line
                 self.bootItf.Start_Cmd(b"reboot\r\n")
                 count = 0
             # time.sleep(0.01)

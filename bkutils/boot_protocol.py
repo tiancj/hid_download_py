@@ -30,6 +30,10 @@ CMD_FlashReadSR=0x0c
 CMD_FlashWriteSR=0x0d
 CMD_FlashGetMID=0x0e
 
+# BKReg CMD
+CMD_BKREG_DO_REBOOT = 0xFE
+
+
 def BuildCmd_LinkCheck():
     length = 1
     buf = bytearray(4096)
@@ -359,6 +363,19 @@ def BuildCmd_FlashGetMID(regAddr: int):
     buf[11]=0
     return buf[:length+7]
 
+def BuildCmd_Bkreg_DoReboot():
+    length=1+(4)
+    buf = bytearray(4096)
+    buf[0]=0x01
+    buf[1]=0xe0
+    buf[2]=0xfc
+    buf[3]=length
+    buf[4]=CMD_BKREG_DO_REBOOT
+    buf[5]=0x95
+    buf[6]=0x27
+    buf[7]=0x95
+    buf[8]=0x27
+    return buf[:length+4]
 
 def CheckRespond_LinkCheck(buf):
     cBuf = bytes([0x04,0x0e,0x05,0x01,0xe0,0xfc,CMD_LinkCheck+1,0x00])
