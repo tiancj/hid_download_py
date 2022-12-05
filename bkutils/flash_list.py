@@ -1,35 +1,35 @@
 # encoding: utf8
 
 FLASH_ID_XTX_25F08B=0x14405e        # 芯天下flash,w+v:6.5s,e+w+v:11.5s
-FLASH_ID_MXIC_25V8035F=0x1423c2     # 旺宏flash,w+v:8.2s,e+w+v:17.2s
 FLASH_ID_XTX_25F04B=0x13311c        # 芯天下flash-4M
+FLASH_ID_XTX_25F16B=0x15400b        # XTX 16M
+FLASH_ID_XTX_25F32B	=0x0016400b     # xtx 32M******暂时只用于脱机烧录器上7231的外挂flash
+FLASH_ID_XTX_25Q64B	=0x0017600b     # xtx 64M******暂时只用于脱机烧录器上7231的外挂flash
+FLASH_ID_XTX_25F64B	=0x0017400b     # xtx 64M******暂时只用于脱机烧录器上7231的外挂flash
+FLASH_ID_MXIC_25V8035F=0x1423c2     # 旺宏flash,w+v:8.2s,e+w+v:17.2s
+FLASH_ID_MXIC_25V4035F=0x1323c2     # 旺宏flash,w+v:8.2s,e+w+v:17.2s
+FLASH_ID_MXIC_25V1635F=0x1523c2     # 旺宏flash,w+v:8.2s,e+w+v:17.2s
 FLASH_ID_GD_25D40=0x134051          # GD flash-4M,w+v:3.1s,e+w+v:5.1s
 FLASH_ID_GD_25D80=0x144051          # GD flash-8M，e+w+v=9.8s
 FLASH_ID_GD_1_25D80=0x1440C8        # GD flash-8M，
-FLASH_ID_Puya_25Q80=0x146085        # puya 8M,w+v:10.4s,e+w+v:11.3s,新版e+w+v：8.3s
-FLASH_ID_Puya_25Q40=0x136085        # puya 4M,e+w+v:6s，新版w+v=4s，e+w+v=4.3s
-FLASH_ID_Puya_25Q32H=0x166085       # puya 32M******暂时只用于脱机烧录器上7231的外挂flash
-FLASH_ID_GD_25Q16=0x001540c8        # GD 16M******暂时只用于脱机烧录器上7231的外挂flash
-FLASH_ID_GD_25Q16B=0x001540c8       # GD 16M******暂时只用于脱机烧录器上7231的外挂flash
-FLASH_ID_XTX_25F16B=0x15400b        # XTX 16M
-FLASH_ID_XTX_25F32B	=0x0016400b     # xtx 32M******暂时只用于脱机烧录器上7231的外挂flash
-
-FLASH_ID_MXIC_25V4035F=0x1323c2     # 旺宏flash,w+v:8.2s,e+w+v:17.2s
-FLASH_ID_MXIC_25V1635F=0x1523c2     # 旺宏flash,w+v:8.2s,e+w+v:17.2s
-FLASH_ID_GD_25Q41B=0x1340c8         # GD flash-4M,w+v:3.1s,e+w+v:5.1s
-FLASH_ID_BY_PN25Q80A=0x1440e0       # GD flash-4M,w+v:3.1s,e+w+v:5.1s
-FLASH_ID_BY_PN25Q40A=0x1340e0       # GD flash-4M,w+v:3.1s,e+w+v:5.1s
-
-FLASH_ID_XTX_25Q64B	=0x0017600b     # xtx 64M******暂时只用于脱机烧录器上7231的外挂flash
-FLASH_ID_XTX_25F64B	=0x0017400b     # xtx 64M******暂时只用于脱机烧录器上7231的外挂flash
-FLASH_ID_Puya_25Q64H=0x00176085
-FLASH_ID_GD_25Q64=0x001740c8
-FLASH_ID_WB_25Q128JV=0x001840ef
-FLASH_ID_ESMT_25QH16B=0x0015701c
-FLASH_ID_ESMT_25QH32A=0x0016411c
 FLASH_ID_GD_25WQ64E=0x001765c8
 FLASH_ID_GD_25WQ32E=0x001665c8
 FLASH_ID_GD_25WQ16E=0x001565c8
+FLASH_ID_GD_25Q64=0x001740c8
+FLASH_ID_GD_25Q16=0x001540c8        # GD 16M******暂时只用于脱机烧录器上7231的外挂flash
+FLASH_ID_GD_25Q16B=0x001540c8       # GD 16M******暂时只用于脱机烧录器上7231的外挂flash
+FLASH_ID_GD_25Q41B=0x1340c8         # GD flash-4M,w+v:3.1s,e+w+v:5.1s
+
+FLASH_ID_Puya_25Q40=0x136085        # puya 4M,e+w+v:6s，新版w+v=4s，e+w+v=4.3s
+FLASH_ID_Puya_25Q64H=0x00176085
+FLASH_ID_Puya_25Q80=0x146085        # puya 8M,w+v:10.4s,e+w+v:11.3s,新版e+w+v：8.3s
+FLASH_ID_Puya_25Q32H=0x166085       # puya 32M******暂时只用于脱机烧录器上7231的外挂flash
+FLASH_ID_BY_PN25Q80A=0x1440e0       # GD flash-4M,w+v:3.1s,e+w+v:5.1s
+FLASH_ID_BY_PN25Q40A=0x1340e0       # GD flash-4M,w+v:3.1s,e+w+v:5.1s
+
+FLASH_ID_WB_25Q128JV=0x001840ef
+FLASH_ID_ESMT_25QH16B=0x0015701c
+FLASH_ID_ESMT_25QH32A=0x0016411c
 FLASH_ID_TH25Q_16HB = 0x001560eb
 FLASH_ID_TH25Q_80HB = 0x001460cd
 FLASH_ID_NA = 0x001640c8
