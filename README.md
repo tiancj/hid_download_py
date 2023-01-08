@@ -16,6 +16,10 @@ It has been modified to
 
 3/ spiprogram has been added - this works on a Raspberry pi using it's native SPI - see SPIFlash.md and rpi3install.md
 
+# Blog post about BK7231N flashing by Zorruno
+
+https://zorruno.com/2022/zemismart-ks-811-with-openbk7231n-openbeken/
+
 # Detailed examples of flashing Beken chips
 
 Please see our detailed step by step guides for more information:
