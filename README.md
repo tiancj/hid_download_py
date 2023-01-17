@@ -34,9 +34,38 @@ https://www.elektroda.com/rtvforum/topic3874289.html
 
 ## Installation
 
-```
+```shell
 $ apt install python3-hid python3-serial python3-tqdm
 $ python3 setup.py install --user
+```
+
+Or use `requirements.txt` with `pip`:
+
+```shell
+# If you use mkvenv, it will pick up the requirements.txt for you
+$ mkvenv
+Creating hid_download_py-master-uD7eej0e virtualenv
+created virtual environment CPython3.10.8.final.0-64 in 86ms
+<...>
+Found a requirements.txt file. Install? [y/N]: Y
+Collecting hid
+  Using cached hid-1.0.5-py3-none-any.whl
+Collecting pyserial
+  Using cached pyserial-3.5-py2.py3-none-any.whl (90 kB)
+Collecting tqdm
+  Using cached tqdm-4.64.1-py2.py3-none-any.whl (78 kB)
+Installing collected packages: pyserial, hid, tqdm
+Successfully installed hid-1.0.5 pyserial-3.5 tqdm-4.64.1
+# Or with regular `pip`
+$ pip3 install -r requirements.txt
+Collecting hid
+  Using cached hid-1.0.5-py3-none-any.whl
+Collecting pyserial
+  Using cached pyserial-3.5-py2.py3-none-any.whl (90 kB)
+Collecting tqdm
+  Using cached tqdm-4.64.1-py2.py3-none-any.whl (78 kB)
+Installing collected packages: pyserial, hid, tqdm
+Successfully installed hid-1.0.5 pyserial-3.5 tqdm-4.64.1
 ```
 
 ## Windows
