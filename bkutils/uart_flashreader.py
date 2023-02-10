@@ -13,26 +13,9 @@ from serial import Timeout
 import binascii
 from tqdm import tqdm
 from .flash_list import *
+from .crc32v2 import *
 
 debug = False
-
-# make crc32 table
-crc32_table = []
-for i in range(0,256):
-    c = i
-    for j in range(0,8):
-        if c&1:
-            c = 0xEDB88320 ^ (c >> 1)
-        else:
-            c = c >> 1
-    crc32_table.append(c)
-
-# print(crc32_table)
-
-def crc32_ver2(crc, buf):
-    for c in buf:
-        crc = (crc>>8) ^ crc32_table[(crc^c)&0xff]
-    return crc
 
 class UartFlashReader(object):
     def __init__(self, port='/dev/ttyUSB0', baudrate=115200):
@@ -114,6 +97,9 @@ class UartFlashReader(object):
             count += 0x1000
             print(".", end='')
         print("")
+        print("crc32 of read: ", crc32_ver2(0xffffffff, buffer))
+        ret, crc = self.bootItf.ReadCRC(startAddr, startAddr+readLength-1, 5)
+        print(f"crc32 of flash: {crc}, ret: {ret}")
 
         self.log("Read Successful")
 
