@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+# encoding: utf8
+#
+# HID Download Tool
+#
+# Copyright (c) BekenCorp. (chunjian.tian@bekencorp.com).  All rights reserved.
+#
+# This software may be distributed under the terms of the BSD license.
+# See README for more details.
+
+import argparse
+from bkutils import UartFlashReader
+
+# parse commandline arguments
+def parse_args():
+    description = '''Beken Uart Downloader.'''
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument('-d', '--device',
+                        default='/dev/ttyUSB0',
+                        help="Uart device, default /dev/ttyUSB0")
+    parser.add_argument('-s', '--startaddr', type=lambda  x: int(x, 16),
+                        default=0x11000,
+                        help="read flash address, defaults to 0x11000")
+    parser.add_argument('-r', '--readlength', type=lambda  x: int(x, 16),
+                        default=0x1000*16,
+                        help="read flash count in bytes, defaults to 64K")
+    parser.add_argument('-b', '--baudrate', type=int,
+                        default=1500000,
+                        help="burn uart baudrate, defaults to 1500000")
+    parser.add_argument('-u', '--unprotect', action="store_true",
+                        help="unprotect flash first, used by BK7231N")
+    parser.add_argument('filename',
+                        help='Specify file to dump flash into')
+    args = parser.parse_args()
+
+    return args
+
+args = parse_args()
+
+reader = UartFlashReader(args.device, args.baudrate, args.unprotect)
+with open(args.filename, 'wb') as fs:
+    fs.write(reader.readflash())
