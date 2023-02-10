@@ -96,13 +96,24 @@ class UartDownloader(object):
                 self.pbar.close()
                 return
             count += 1
-            if count > 500:
+            if count > 20:
                 # Send reboot via bkreg
                 self.bootItf.SendBkRegReboot()
+
+                if self.bootItf.ser.baudrate == 115200:
+                    self.bootItf.ser.baudrate = 921600
+                elif self.bootItf.ser.baudrate == 921600:
+                    self.bootItf.ser.baudrate = 115200
+
                 # Send reboot via command line
                 self.bootItf.Start_Cmd(b"reboot\r\n")
+
+                # reset to bootrom baudrate
+                if self.bootItf.ser.baudrate != 115200:
+                    self.bootItf.ser.baudrate = 115200
                 count = 0
             # time.sleep(0.01)
+
 
         self.log("Gotten Bus...")
         time.sleep(0.01)

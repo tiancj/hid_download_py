@@ -35,11 +35,9 @@ def crc32_ver2(crc, buf):
     return crc
 
 class UartFlashReader(object):
-    def __init__(self, port='/dev/ttyUSB0', baudrate=115200, unprotect=False):
-        # self.bootItf = CBootIntf(port, 115200, 0.01)
-        self.bootItf = CBootIntf(port, 115200, 0)
+    def __init__(self, port='/dev/ttyUSB0', baudrate=115200):
+        self.bootItf = CBootIntf(port, 115200, 0.001)
         self.target_baudrate = baudrate
-        self.unprotect = unprotect
         self.pbar = None
 
     def log(self, text):
@@ -61,17 +59,39 @@ class UartFlashReader(object):
         self.do_reset_signal()
         self.log("Getting bus...")
         timeout = Timeout(10)
+
+        # Step2: Link Check
+        count = 0
+        # Send reboot via bkreg
+        self.bootItf.SendBkRegReboot()
         while True:
             r = self.bootItf.LinkCheck()
             if r:
                 break
             if timeout.expired():
                 self.log('Cannot get bus.')
-                return
+                # self.pbar.close()
+                return b''
             count += 1
-            if count > 500:
+            if count > 20:
+                # Send reboot via bkreg
+                self.bootItf.SendBkRegReboot()
+
+                if self.bootItf.ser.baudrate == 115200:
+                    self.bootItf.ser.baudrate = 921600
+                elif self.bootItf.ser.baudrate == 921600:
+                    self.bootItf.ser.baudrate = 115200
+
+                # Send reboot via command line
                 self.bootItf.Start_Cmd(b"reboot\r\n")
+
+                # reset to bootrom baudrate
+                if self.bootItf.ser.baudrate != 115200:
+                    self.bootItf.ser.baudrate = 115200
                 count = 0
+            # time.sleep(0.01)
+
+
         self.log("Gotten Bus...")
         time.sleep(0.01)
         self.bootItf.Drain()
@@ -80,17 +100,9 @@ class UartFlashReader(object):
         if self.target_baudrate != 115200:
             if not self.bootItf.SetBR(self.target_baudrate, 20):
                 self.log("Set baudrate failed")
-                return
+                return b''
             self.log("Set baudrate successful")
 
-        if self.unprotect:
-            # Get Mid
-            mid = self.bootItf.GetFlashMID()
-            # print("\n\n mid: {:x}\n\n".format(mid))
-            if self._Do_Boot_ProtectFlash(mid, True) != 1:
-                self.log("Unprotect Failed")
-                return
-        
         addr = startAddr & 0xfffff000
         count = 0
         buffer = bytes()
@@ -100,6 +112,8 @@ class UartFlashReader(object):
                 buffer += sector
             addr += 0x1000
             count += 0x1000
+            print(".", end='')
+        print("")
 
         self.log("Read Successful")
 
@@ -108,50 +122,6 @@ class UartFlashReader(object):
             self.bootItf.SendReboot()
 
         return buffer[:readLength]
-        
-    
-    def _Do_Boot_ProtectFlash(self, mid:int, unprotect:bool):
-        # 1. find flash info
-        flash_info = GetFlashInfo(mid)
-        if flash_info is None:
-            return -1
-        if debug:
-            print(flash_info.icNam, flash_info.manName)
-
-        timeout = Timeout(1)
-
-        # 2. write (un)protect word
-        cw = flash_info.cwUnp if unprotect else flash_info.cwEnp
-        while True:
-            sr = 0
-
-            # read sr register
-            for i in range(flash_info.szSR):
-                f = self.bootItf.ReadFlashSR(flash_info.cwdRd[i])
-                if f[0]:
-                    sr |= f[2] << (8 * i)
-                    if debug: print("sr: {:x}".format(sr))
-
-            if debug:
-                print("final sr: {:x}".format(sr))
-                print("msk: {:x}".format(flash_info.cwMsk))
-                print("cw: {:x}, sb: {}, lb: {}".format(cw, flash_info.sb, flash_info.lb))
-                print("bfd: {:x}".format(BFD(cw, flash_info.sb, flash_info.lb)))
-
-            # if (un)protect word is set
-            if (sr & flash_info.cwMsk) == BFD(cw, flash_info.sb, flash_info.lb):
-                return 1
-            if timeout.expired():
-                return -2
-            # // set (un)protect word
-            srt = sr & (flash_info.cwMsk ^ 0xffffffff)
-            srt |= BFD(cw, flash_info.sb, flash_info.lb)
-            f = self.bootItf.WriteFlashSR(flash_info.szSR, flash_info.cwdWr[0], srt & 0xffff)
-
-            time.sleep(0.01)
-
-        return 1
-
 
 if __name__ == '__main__':
     reader = UartFlashReader()

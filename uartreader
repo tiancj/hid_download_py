@@ -13,7 +13,7 @@ from bkutils import UartFlashReader
 
 # parse commandline arguments
 def parse_args():
-    description = '''Beken Uart Downloader.'''
+    description = '''Beken Uart Flash Reader.'''
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('-d', '--device',
                         default='/dev/ttyUSB0',
@@ -27,8 +27,6 @@ def parse_args():
     parser.add_argument('-b', '--baudrate', type=int,
                         default=1500000,
                         help="burn uart baudrate, defaults to 1500000")
-    parser.add_argument('-u', '--unprotect', action="store_true",
-                        help="unprotect flash first, used by BK7231N")
     parser.add_argument('filename',
                         help='Specify file to dump flash into')
     args = parser.parse_args()
@@ -37,6 +35,6 @@ def parse_args():
 
 args = parse_args()
 
-reader = UartFlashReader(args.device, args.baudrate, args.unprotect)
+reader = UartFlashReader(args.device, args.baudrate)
 with open(args.filename, 'wb') as fs:
     fs.write(reader.readflash())

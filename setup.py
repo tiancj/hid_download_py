@@ -12,5 +12,5 @@ setup(name="hid_downloader",
     requires=["hid", "pyserial", "tqdm"],
     platforms=["Windows", "GNU/Linux", "Darwin"],
     packages=['bkutils', 'bkutils/chip'],
-    scripts=['hidprogram', 'uartprogram'])
+    scripts=['hidprogram', 'uartprogram', 'uartreader'])
 
