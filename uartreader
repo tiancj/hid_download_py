@@ -37,4 +37,4 @@ args = parse_args()
 
 reader = UartFlashReader(args.device, args.baudrate)
 with open(args.filename, 'wb') as fs:
-    fs.write(reader.readflash())
+    fs.write(reader.readflash(args.startaddr, args.readlength))

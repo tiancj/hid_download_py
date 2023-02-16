@@ -38,7 +38,7 @@ class UartFlashReader(object):
         time.sleep(0.2)
         self.bootItf.ser.rts = 0
 
-    def readflash(self, startAddr=0x11000, readLength=(0x1000*16)):
+    def readflash(self, startAddr, readLength):
         self.do_reset_signal()
         self.log("Getting bus...")
         timeout = Timeout(10)
@@ -95,7 +95,7 @@ class UartFlashReader(object):
                 buffer += sector
             addr += 0x1000
             count += 0x1000
-            print(".", end='')
+            print(".", end='', flush=True)
         print("")
         print("crc32 of read: ", crc32_ver2(0xffffffff, buffer))
         ret, crc = self.bootItf.ReadCRC(startAddr, startAddr+readLength-1, 5)
