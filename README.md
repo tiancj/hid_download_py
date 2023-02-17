@@ -7,6 +7,11 @@ $ apt install python3-hid python3-serial python3-tqdm
 $ python3 setup.py install --user
 ```
 
+For other OS, you may use pip to install the requirements.
+
+```
+$ pip3 install -r requirements.txt --user
+```
 
 
 ## SPI Usage

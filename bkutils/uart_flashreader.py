@@ -9,7 +9,10 @@
 
 import time
 from .boot_intf import CBootIntf
-from serial import Timeout
+try:
+    from serial import Timeout
+except ImportError:
+    from serial.serialutil import Timeout
 import binascii
 from tqdm import tqdm
 from .flash_list import *

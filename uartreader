@@ -9,6 +9,8 @@
 # See README for more details.
 
 import argparse
+import os
+import sys
 from bkutils import UartFlashReader
 
 # parse commandline arguments
@@ -34,6 +36,16 @@ def parse_args():
     return args
 
 args = parse_args()
+
+if not os.path.exists(args.device):
+    print(f"Device {args.device} doesn't exist")
+    sys.exit(-1)
+
+if os.path.exists(args.filename):
+    ans = input(f"Device {args.filename} already exist, overwrite? [Y/n] ")
+    if ans == 'n' or ans == 'N':
+        sys.exit(0)
+
 
 reader = UartFlashReader(args.device, args.baudrate)
 with open(args.filename, 'wb') as fs:

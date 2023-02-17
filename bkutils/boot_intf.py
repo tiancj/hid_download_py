@@ -9,7 +9,10 @@
 
 # uart wrapper
 import serial
-from serial import Timeout
+try:
+    from serial import Timeout
+except ImportError:
+    from serial.serialutil import Timeout
 from .boot_protocol import *
 import binascii
 import time
