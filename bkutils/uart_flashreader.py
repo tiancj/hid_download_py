@@ -39,6 +39,9 @@ class UartFlashReader(object):
         self.bootItf.ser.rts = 0
 
     def readflash(self, startAddr, readLength):
+        self.pbar = tqdm(range(readLength//0x1000), ascii=True, ncols=80, unit_scale=True,
+                unit='k', bar_format='{desc}|{bar}|[{rate_fmt:>8}]')
+
         self.do_reset_signal()
         self.log("Getting bus...")
         timeout = Timeout(10)
@@ -53,7 +56,7 @@ class UartFlashReader(object):
                 break
             if timeout.expired():
                 self.log('Cannot get bus.')
-                # self.pbar.close()
+                self.pbar.close()
                 return b''
             count += 1
             if count > 20:
@@ -83,25 +86,29 @@ class UartFlashReader(object):
         if self.target_baudrate != 115200:
             if not self.bootItf.SetBR(self.target_baudrate, 20):
                 self.log("Set baudrate failed")
+                self.pbar.close()
                 return b''
             self.log("Set baudrate successful")
 
         addr = startAddr & 0xfffff000
         count = 0
         buffer = bytes()
+
         while count < readLength:
             sector = self.bootItf.ReadSector(addr)
             if sector is not None:
                 buffer += sector
             addr += 0x1000
             count += 0x1000
-            print(".", end='', flush=True)
-        print("")
-        print("crc32 of read: ", crc32_ver2(0xffffffff, buffer))
-        ret, crc = self.bootItf.ReadCRC(startAddr, startAddr+readLength-1, 5)
-        print(f"crc32 of flash: {crc}, ret: {ret}")
+            self.pbar.update()
 
-        self.log("Read Successful")
+        self.log("Check CRC: ")
+        crc = crc32_ver2(0xffffffff, buffer)
+        ret, flash_crc = self.bootItf.ReadCRC(startAddr, startAddr+readLength-1, 5)
+        if crc == flash_crc:
+            self.log("Read Successful")
+        else:
+            self.log("CRC not equal")
 
         for i in range(3):
             time.sleep(0.01)

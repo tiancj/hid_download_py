@@ -18,12 +18,12 @@ def parse_args():
     parser.add_argument('-d', '--device',
                         default='/dev/ttyUSB0',
                         help="Uart device, default /dev/ttyUSB0")
-    parser.add_argument('-s', '--startaddr', type=lambda  x: int(x, 16),
-                        default=0x11000,
-                        help="read flash address, defaults to 0x11000")
-    parser.add_argument('-r', '--readlength', type=lambda  x: int(x, 16),
-                        default=0x1000*16,
-                        help="read flash count in bytes, defaults to 64K")
+    parser.add_argument('-s', '--startaddr', type=lambda x: int(x, 16),
+                        default=0,
+                        help="read flash address, defaults to 0")
+    parser.add_argument('-l', '--readlength', type=lambda x: int(x, 16),
+                        default=0x200000,
+                        help="read flash count in bytes, defaults to 2M Bytes")
     parser.add_argument('-b', '--baudrate', type=int,
                         default=1500000,
                         help="burn uart baudrate, defaults to 1500000")
