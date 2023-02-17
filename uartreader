@@ -17,7 +17,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('-d', '--device',
                         default='/dev/ttyUSB0',
-                        help="Uart device, default /dev/ttyUSB0")
+                        help="Uart device, defaults to /dev/ttyUSB0")
     parser.add_argument('-s', '--startaddr', type=lambda x: int(x, 16),
                         default=0,
                         help="read flash address, defaults to 0")
@@ -26,7 +26,7 @@ def parse_args():
                         help="read flash count in bytes, defaults to 2M Bytes")
     parser.add_argument('-b', '--baudrate', type=int,
                         default=1500000,
-                        help="burn uart baudrate, defaults to 1500000")
+                        help="uart baudrate, defaults to 1500000")
     parser.add_argument('filename',
                         help='Specify file to dump flash into')
     args = parser.parse_args()

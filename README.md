@@ -54,3 +54,25 @@ optional arguments:
 
 * For `BK7231N`, set download address to `0x0`, and **set** `-u` option.
 
+## Uart reader Usage
+
+```
+usage: uartreader [-h] [-d DEVICE] [-s STARTADDR] [-l READLENGTH] [-b BAUDRATE] filename
+
+Beken Uart Flash Reader.
+
+positional arguments:
+  filename              Specify file to dump flash into
+
+options:
+  -h, --help            show this help message and exit
+  -d DEVICE, --device DEVICE
+                        Uart device, default /dev/ttyUSB0
+  -s STARTADDR, --startaddr STARTADDR
+                        read flash address, defaults to 0
+  -l READLENGTH, --readlength READLENGTH
+                        read flash count in bytes, defaults to 2M Bytes
+  -b BAUDRATE, --baudrate BAUDRATE
+                        uart baudrate, defaults to 1500000
+```
+
