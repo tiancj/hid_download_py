@@ -37,22 +37,23 @@ optional arguments:
 ## Uart downloader Usage
 
 ```
-usage: uartprogram [-h] [-d DEVICE] [-s STARTADDR] [-b BAUDRATE] [-u] filename
+usage: uartprogram [-h] [-d DEVICE] [-s STARTADDR] [-b BAUDRATE] [-u] [-e] [filename]
 
 Beken Uart Downloader.
 
 positional arguments:
-  filename              specify file_crc.bin
+  filename              specify file_crc.bin if -e is not provided
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -d DEVICE, --device DEVICE
-                        Uart device, default /dev/ttyUSB0
+                        Uart device, default to /dev/ttyUSB0
   -s STARTADDR, --startaddr STARTADDR
                         burn flash address, defaults to 0x11000
   -b BAUDRATE, --baudrate BAUDRATE
-                        burn uart baudrate, defaults to 115200
+                        burn uart baudrate, defaults to 2000000
   -u, --unprotect       unprotect flash first, used by BK7231N
+  -e, --erase           Erase chip
 ```
 
 * For chips exclude `BK7231N`, download address defaults to `0x11000`, **don't** set `-u` option.
