@@ -299,6 +299,75 @@ class UartDownloader(object):
 
         return 1
 
+    def chip_erase(self):
+        self.do_reset_signal()
+        # reboot = "reboot"
+        # self.bootItf.Start_Cmd(reboot)
+        # time.sleep(0.1)
+        total_num = 100
+        self.pbar = tqdm(total=total_num, ascii=True, ncols=80, unit_scale=True,
+                unit='k', bar_format='{desc}|{bar}|[{rate_fmt:>8}]')
+        self.log("Getting Bus...")
+        timeout = Timeout(10)
+
+        # Step2: Link Check
+        count = 0
+        # Send reboot via bkreg
+        self.bootItf.SendBkRegReboot()
+        while True:
+            r = self.bootItf.LinkCheck()
+            if r:
+                break
+            if timeout.expired():
+                self.log('Cannot get bus.')
+                self.pbar.close()
+                return
+            count += 1
+            if count > 20:
+                # Send reboot via bkreg
+                self.bootItf.SendBkRegReboot()
+
+                if self.bootItf.ser.baudrate == 115200:
+                    self.bootItf.ser.baudrate = 921600
+                elif self.bootItf.ser.baudrate == 921600:
+                    self.bootItf.ser.baudrate = 115200
+
+                # Send reboot via command line
+                self.bootItf.Start_Cmd(b"reboot\r\n")
+
+                # reset to bootrom baudrate
+                if self.bootItf.ser.baudrate != 115200:
+                    self.bootItf.ser.baudrate = 115200
+                count = 0
+            # time.sleep(0.01)
+
+
+        self.log("Gotten Bus...")
+        time.sleep(0.01)
+        self.bootItf.Drain()
+
+        if self.unprotect:
+            # Get Mid
+            mid = self.bootItf.GetFlashMID()
+            # print("\n\n mid: {:x}\n\n".format(mid))
+            if self._Do_Boot_ProtectFlash(mid, True) != 1:
+                self.log("Unprotect Failed")
+                return
+            # unprotect flash first
+
+        self.pbar.update(99)
+        self.bootItf.EraseAllFlash()
+
+        if self.unprotect:
+            self._Do_Boot_ProtectFlash(mid, False)
+        self.log("Chip Erase Done")
+        self.pbar.update(1)
+
+        for i in range(3):
+            time.sleep(0.01)
+            self.bootItf.SendReboot()
+
+        self.pbar.close()
 
 if __name__ == '__main__':
     downloader = UartDownloader()

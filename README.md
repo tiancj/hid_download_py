@@ -4,7 +4,7 @@
 
 ```
 $ apt install python3-hid python3-serial python3-tqdm
-$ python3 setup.py install --user
+$ pip3 install . --user
 ```
 
 For other OS, you may use pip to install the requirements.

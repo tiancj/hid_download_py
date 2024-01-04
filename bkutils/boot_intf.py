@@ -210,3 +210,7 @@ class CBootIntf(object):
     def SendBkRegReboot(self):
         txbuf = BuildCmd_Bkreg_DoReboot()
         self.Start_Cmd(txbuf)
+
+    def EraseAllFlash(self):
+        txbuf = BuildCmd_FlashEraseAll()
+        self.Start_Cmd(txbuf, 30)

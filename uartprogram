@@ -12,8 +12,6 @@ import sys
 import os
 import argparse
 from bkutils import UartDownloader
-import hid
-import threading
 import os
 
 # parse commandline arguments
@@ -31,8 +29,10 @@ def parse_args():
                         help="burn uart baudrate, defaults to 2000000")
     parser.add_argument('-u', '--unprotect', action="store_true",
                         help="unprotect flash first, used by BK7231N")
-    parser.add_argument('filename',
-                        help='specify file_crc.bin')
+    parser.add_argument('-e', '--erase', action='store_true',
+                        help="Erase chip")
+    parser.add_argument('filename', nargs='?',
+                        help='specify file_crc.bin if -e is not provided')
     args = parser.parse_args()
 
     return args
@@ -43,9 +43,16 @@ if not os.path.exists(args.device):
     print(f"Device {args.device} doesn't exist")
     sys.exit(-1)
 
-if not os.path.exists(args.filename):
-    print(f"File {args.filename} doesn't exist")
-    sys.exit(-1)
+if not args.erase:
+    if not args.filename:
+        print(f"filename must be specified, use -h for help")
+        sys.exit(-1)
+    if not os.path.exists(args.filename):
+        print(f"File {args.filename} doesn't exist")
+        sys.exit(-1)
 
 downloader = UartDownloader(args.device, args.baudrate, args.unprotect)
-downloader.programm(args.filename, args.startaddr)
+if args.erase:
+    downloader.chip_erase()
+else:
+    downloader.programm(args.filename, args.startaddr)
