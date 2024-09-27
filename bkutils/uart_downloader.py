@@ -59,8 +59,6 @@ class UartDownloader(object):
         fileCrc = crc32_ver2(0xffffffff, pfile)
         total_num = filOLen // 0x1000
 
-
-        self.do_reset_signal()
         # reboot = "reboot"
         # self.bootItf.Start_Cmd(reboot)
         # time.sleep(0.1)
@@ -68,6 +66,8 @@ class UartDownloader(object):
                 unit='k', bar_format='{desc}|{bar}|[{rate_fmt:>8}]')
         self.log("Getting Bus...")
         timeout = Timeout(10)
+
+        self.do_reset_signal()
 
         # Step2: Link Check
         count = 0
