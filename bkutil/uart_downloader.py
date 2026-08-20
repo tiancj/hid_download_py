@@ -19,22 +19,56 @@ from .flash_list import *
 from .crc32v2 import *
 
 debug = False
+STATUS_WIDTH = 16
+STATUS_PAD = '\u00a0'
 
 class UartDownloader(object):
-    def __init__(self, port='/dev/ttyUSB0', baudrate=115200, unprotect=False):
+    def __init__(self, port='/dev/ttyUSB0', baudrate=115200, unprotect=False, verbose=False):
         self.bootItf = CBootIntf(port, 115200, 0.001)
         self.target_baudrate = baudrate
         self.unprotect = unprotect
+        self.verbose = verbose
         self.pbar = None
+        self._pbar_total = 0
+        self._mid = None
 
-    def log(self, text):
-        """
-        print text to tqdm progress bar
-        """
+    def _pad_status(self, text):
+        text = str(text)
+        if len(text) >= STATUS_WIDTH:
+            return text[:STATUS_WIDTH]
+        return text + STATUS_PAD * (STATUS_WIDTH - len(text))
+
+    def log(self, text, bar_desc=True, refresh=None):
         if not self.pbar:
-            print("{}".format(text))
-        else:
-            self.pbar.set_description("{:<16}".format(text))
+            print(text)
+            return
+        text = str(text)
+        if not bar_desc or len(text) > STATUS_WIDTH:
+            self.pbar.write(text)
+            return
+        if refresh is None:
+            refresh = True
+        self.pbar.set_description_str(self._pad_status(text), refresh=refresh)
+
+    def _make_pbar(self, total, status=''):
+        return tqdm(
+            total=total,
+            desc=self._pad_status(status),
+            ascii=True,
+            ncols=80,
+            dynamic_ncols=False,
+            unit_scale=False,
+            bar_format='{desc} : |{bar:24}| {percentage:3.0f}% [{elapsed}<{remaining}]',
+        )
+
+    def _ensure_pbar(self, status=''):
+        if self.pbar is None and self._pbar_total > 0:
+            self.pbar = self._make_pbar(self._pbar_total, status)
+
+    def _estimate_pbar_total(self, byte_len, partitions=1):
+        sectors = max(1, byte_len // 0x1000)
+        # erase may include extra alignment sectors beyond payload size
+        return sectors * 2 + 32 * partitions
 
     def do_reset_signal(self):
         self.bootItf.ser.dtr = 0
@@ -42,36 +76,22 @@ class UartDownloader(object):
         time.sleep(0.2)
         self.bootItf.ser.rts = 0
 
-    def programm(self, filename, startAddr=0x11000):
-
-        # Step1: read file into system memory
-        # TODO: sanity check
-        with open(filename, "rb") as f:
-            pfile = f.read()
+    def _prepare_file_data(self, pfile):
         fileLen = filOLen = len(pfile)
         padding_len = 0x100 - (fileLen & 0xff)
         if padding_len:
-            pfile += b'\xff'*padding_len
+            pfile += b'\xff' * padding_len
             fileLen += padding_len
             filOLen += padding_len
-            # print("fileLen{}, padding_len {}".format(fileLen, padding_len))
-            # print("FILE: ", binascii.b2a_hex(pfile, b' '))
         fileCrc = crc32_ver2(0xffffffff, pfile)
-        total_num = filOLen // 0x1000
+        return pfile, fileLen, filOLen, fileCrc
 
-        # reboot = "reboot"
-        # self.bootItf.Start_Cmd(reboot)
-        # time.sleep(0.1)
-        self.pbar = tqdm(total=total_num, ascii=True, ncols=80, unit_scale=True,
-                unit='k', bar_format='{desc}|{bar}|[{rate_fmt:>8}]')
-        self.log("Getting Bus...")
+    def _connect(self):
+        self._ensure_pbar("Getting Bus...")
         timeout = Timeout(10)
-
         self.do_reset_signal()
 
-        # Step2: Link Check
         count = 0
-        # Send reboot via bkreg
         self.bootItf.SendBkRegReboot()
         while True:
             r = self.bootItf.LinkCheck()
@@ -79,156 +99,160 @@ class UartDownloader(object):
                 break
             if timeout.expired():
                 self.log('Cannot get bus.')
-                self.pbar.close()
-                return
+                return False
             count += 1
             if count > 20:
-                # Send reboot via bkreg
                 self.bootItf.SendBkRegReboot()
-
                 if self.bootItf.ser.baudrate == 115200:
                     self.bootItf.ser.baudrate = 921600
                 elif self.bootItf.ser.baudrate == 921600:
                     self.bootItf.ser.baudrate = 115200
-
-                # Send reboot via command line
                 self.bootItf.Start_Cmd(b"reboot\r\n")
-
-                # reset to bootrom baudrate
                 if self.bootItf.ser.baudrate != 115200:
                     self.bootItf.ser.baudrate = 115200
                 count = 0
-            # time.sleep(0.01)
-
 
         self.log("Gotten Bus...")
         time.sleep(0.01)
         self.bootItf.Drain()
 
-        # Step3: set baudrate, delay 100ms
         if self.target_baudrate != 115200:
             if not self.bootItf.SetBR(self.target_baudrate, 20):
                 self.log("Set baudrate failed")
-                self.pbar.close()
-                return
-            self.log("Set baudrate successful")
+                return False
+            self.log("Set baudrate OK")
 
         if self.unprotect:
-            # Get Mid
-            mid = self.bootItf.GetFlashMID()
-            # print("\n\n mid: {:x}\n\n".format(mid))
-            if self._Do_Boot_ProtectFlash(mid, True) != 1:
+            self._mid = self.bootItf.GetFlashMID()
+            if self._Do_Boot_ProtectFlash(self._mid, True) != 1:
                 self.log("Unprotect Failed")
-                return
-            # unprotect flash first
+                return False
+        return True
 
-        # Step4: erase
-        # Step4.1: read first 4k if startAddr not aligned with 4K
+    def _pbar_step(self, step=1):
+        if not self.pbar:
+            return
+        remaining = self.pbar.total - self.pbar.n
+        if remaining > 0:
+            self.pbar.update(min(step, remaining))
+            self.pbar.refresh()
+
+    def _complete_pbar(self):
+        if not self.pbar:
+            return
+        self.pbar.n = self.pbar.total
+        self.pbar.refresh()
+
+    def _finalize(self, success=True):
+        if self.unprotect and self._mid is not None:
+            self._Do_Boot_ProtectFlash(self._mid, False)
+        if success:
+            self._complete_pbar()
+            self.log("Write OK")
+            if self.pbar:
+                self.pbar.refresh()
+            for _ in range(3):
+                time.sleep(0.01)
+                self.bootItf.SendReboot()
+        if self.pbar:
+            self.pbar.close()
+            self.pbar = None
+
+    def _erase_block(self, cmd, addr, retry=1):
+        self._ensure_pbar()
+        for attempt in range(retry):
+            if self.bootItf.EraseBlock(cmd, addr):
+                self._pbar_step(16 if cmd == 0xd8 else 1)
+                return True
+            if attempt + 1 < retry:
+                time.sleep(0.05)
+        return False
+
+    def _program_data(self, pfile, startAddr, fileLen=None, fileCrc=None):
+        if fileLen is None or fileCrc is None:
+            pfile, fileLen, filOLen, fileCrc = self._prepare_file_data(pfile)
+        else:
+            filOLen = fileLen
+
         eraseAddr = startAddr
-        ss = s0 = eraseAddr & 0xfffff000     # 4K对齐的地址
+        ss = s0 = eraseAddr & 0xfffff000
         filSPtr = 0
 
         if eraseAddr & 0xfff:
-            self.log("Aligning Flash Address...")
-
-            # Read 4K from flash
+            self.log("Aligning...")
             buf = self.bootItf.ReadSector(s0)
             l = 0x1000 - (eraseAddr & 0xfff)
             fl = l if l < fileLen else fileLen
-            buf[eraseAddr&0xfff:eraseAddr&0xfff+fl] = pfile[:fl]
-            self.bootItf.EraseBlock(0x20, s0)
+            buf[eraseAddr & 0xfff:eraseAddr & 0xfff + fl] = pfile[:fl]
+            if not self._erase_block(0x20, s0):
+                self.log("EraseBlock Failed")
+                return False
             if not self.bootItf.WriteSector(s0, buf):
                 self.log("WriteSector Failed")
-                self.pbar.close()
-                return
+                return False
             filOLen -= fl
             filSPtr = fl
             s0 += 0x1000
             ss = s0
-
             if filOLen <= 0:
-                # TODO: goto crc check
-                return
+                return self._verify_crc(startAddr, fileLen, fileCrc)
 
-
-        # Step4.2: handle the last 4K
-        # now ss is the new eraseAddr.
-        # 文件结束地址
         filEPtr = fileLen
         s1 = eraseAddr + fileLen
-
-        # If not 4K aligned, read the last sector, fill the data, write it back
         if s1 & 0xfff:
-            # print("Handle file end...")
-            buf = bytearray(b'\xff'*4096)   # fill with 0xFF
-            buf[:s1&0xfff] = pfile[filEPtr-(s1&0xfff):]  # copy s1&0xfff len
-            # print(time.time())
-            for _ in range(4):
-                if self.bootItf.EraseBlock(0x20, s1&0xfffff000):
-                    break
-                time.sleep(0.05)
-            # time.sleep(0.1)
-
-            # for _ in range(10):
-            #    tt = self.bootItf.Read()
-            #    print(tt)
-            #print(time.time())
-            if not self.bootItf.WriteSector(s1&0xfffff000, buf):
+            buf = bytearray(b'\xff' * 4096)
+            buf[:s1 & 0xfff] = pfile[filEPtr - (s1 & 0xfff):]
+            if not self._erase_block(0x20, s1 & 0xfffff000, retry=4):
+                self.log("EraseBlock Failed")
+                return False
+            if not self.bootItf.WriteSector(s1 & 0xfffff000, buf):
                 self.log("WriteSector Failed")
-                self.pbar.close()
-                return
-            # print(time.time())
+                return False
+            filEPtr = filEPtr - (s1 & 0xfff)
+            filOLen = filOLen - (s1 & 0xfff)
 
-            filEPtr = filEPtr - (s1&0xfff)
-            filOLen = filOLen - (s1&0xfff)
-            if filOLen <= 0:
-                # TODO: goto crc check
-                pass
-
-        # print("Handle file end done")
-
-        # Step4.3: 对齐64KB，如果擦除区域小于64KB
         len1 = ss + filOLen
         len0 = s0 & 0xffff0000
         if s0 & 0xffff:
             len0 += 0x10000
         if filOLen > len0 - s0:
             while s0 < len0:
-                self.bootItf.EraseBlock(0x20, s0)
+                if not self._erase_block(0x20, s0):
+                    self.log("EraseBlock Failed")
+                    return False
                 s0 += 0x1000
 
-        # print("fileOLen: {}, filSPtr: {}".format(filOLen, filSPtr))
-        # Step4.4: Erase 64k, 4k, etc.
-        # 按照64KB/4K block擦除
         len1 = ss + filOLen
+        self.log("Erasing")
         while s0 < len1:
-            self.log("Erasing")
             rmn = len1 - s0
-            if rmn > 0x10000:   # 64K erase
-                self.bootItf.EraseBlock(0xd8, s0)
-                s0 = s0+0x10000
-            else:       # erase 4K
-                self.bootItf.EraseBlock(0x20, s0)
+            if rmn > 0x10000:
+                if not self._erase_block(0xd8, s0):
+                    self.log("EraseBlock Failed")
+                    return False
+                s0 = s0 + 0x10000
+            else:
+                if not self._erase_block(0x20, s0):
+                    self.log("EraseBlock Failed")
+                    return False
                 s0 = s0 + 0x1000
 
-
-        # Step5: Write data
+        self.log("Writing")
         i = 0
         while i < filOLen:
-            self.log("Writing")
             for _ in range(4):
-                if self.bootItf.WriteSector(ss+i, pfile[filSPtr+i:filSPtr+i+4*1024]):
-                    self.pbar.update(1)
+                if self.bootItf.WriteSector(ss + i, pfile[filSPtr + i:filSPtr + i + 4 * 1024]):
+                    self._pbar_step(1)
                     break
             else:
-                self.log("WriteSector 1 Failed")
-                self.pbar.close()
-                return
+                self.log("WriteSector Failed")
+                return False
             i += 0x1000
 
+        return self._verify_crc(startAddr, fileLen, fileCrc)
 
-        # Step6: CRC check
-        self.log("Verifing")
+    def _verify_crc(self, startAddr, fileLen, fileCrc):
+        self.log("CRC verify")
         if fileLen & 0xff:
             l2 = (fileLen & ~0xff) + 0x100
         else:
@@ -236,26 +260,54 @@ class UartDownloader(object):
         crcTo = fileLen * 15 / 1024 / 1024
         if crcTo < 15:
             crcTo = 15
-        ret, crc = self.bootItf.ReadCRC(startAddr, startAddr+l2-1, crcTo)
+        ret, crc = self.bootItf.ReadCRC(startAddr, startAddr + l2 - 1, crcTo)
         if not ret:
             self.log("Read CRC Failed")
-            self.pbar.close()
-            return
+            return False
         if crc != fileCrc:
             self.log("CRC not equal")
-            self.pbar.close()
+            return False
+        return True
+
+    def programm(self, filename, startAddr=0x11000):
+        with open(filename, "rb") as f:
+            pfile = f.read()
+        _, _, filOLen, _ = self._prepare_file_data(pfile)
+        self._pbar_total = self._estimate_pbar_total(filOLen)
+        self.pbar = None
+        if not self._connect():
+            self._finalize(success=False)
             return
+        success = self._program_data(pfile, startAddr)
+        self._finalize(success=success)
 
-        if self.unprotect:
-            self._Do_Boot_ProtectFlash(mid, False)
-
-        self.log("Write Successful")
-
-        for i in range(3):
-            time.sleep(0.01)
-            self.bootItf.SendReboot()
-
-        self.pbar.close()
+    def program_bin_list(self, bin_list):
+        byte_len = sum(item.iFileLength for item in bin_list)
+        self._pbar_total = self._estimate_pbar_total(byte_len, len(bin_list))
+        self.pbar = None
+        if not self._connect():
+            self._finalize(success=False)
+            return
+        success = True
+        for idx, bin_info in enumerate(bin_list):
+            if not bin_info.bDataPort:
+                if self.verbose:
+                    self.log(f"[{idx}] skip cbus @0x{bin_info.iStartAddress:x}", bar_desc=False)
+                continue
+            if self.verbose:
+                self.log(
+                    f"[{idx}] start: 0x{bin_info.iStartAddress:x}, length: 0x{bin_info.iFileLength:x}",
+                    bar_desc=False,
+                )
+            if not self._program_data(
+                bin_info.pfile,
+                bin_info.iStartAddress,
+                bin_info.iFileLength,
+                bin_info.iFileCRC,
+            ):
+                success = False
+                break
+        self._finalize(success=success)
 
     def _Do_Boot_ProtectFlash(self, mid:int, unprotect:bool):
         # 1. find flash info
@@ -300,74 +352,27 @@ class UartDownloader(object):
         return 1
 
     def chip_erase(self):
-        self.do_reset_signal()
-        # reboot = "reboot"
-        # self.bootItf.Start_Cmd(reboot)
-        # time.sleep(0.1)
-        total_num = 100
-        self.pbar = tqdm(total=total_num, ascii=True, ncols=80, unit_scale=True,
-                unit='k', bar_format='{desc}|{bar}|[{rate_fmt:>8}]')
-        self.log("Getting Bus...")
-        timeout = Timeout(10)
+        self._pbar_total = 100
+        self.pbar = None
+        if not self._connect():
+            self._finalize(success=False)
+            return
 
-        # Step2: Link Check
-        count = 0
-        # Send reboot via bkreg
-        self.bootItf.SendBkRegReboot()
-        while True:
-            r = self.bootItf.LinkCheck()
-            if r:
-                break
-            if timeout.expired():
-                self.log('Cannot get bus.')
-                self.pbar.close()
-                return
-            count += 1
-            if count > 20:
-                # Send reboot via bkreg
-                self.bootItf.SendBkRegReboot()
-
-                if self.bootItf.ser.baudrate == 115200:
-                    self.bootItf.ser.baudrate = 921600
-                elif self.bootItf.ser.baudrate == 921600:
-                    self.bootItf.ser.baudrate = 115200
-
-                # Send reboot via command line
-                self.bootItf.Start_Cmd(b"reboot\r\n")
-
-                # reset to bootrom baudrate
-                if self.bootItf.ser.baudrate != 115200:
-                    self.bootItf.ser.baudrate = 115200
-                count = 0
-            # time.sleep(0.01)
-
-
-        self.log("Gotten Bus...")
-        time.sleep(0.01)
-        self.bootItf.Drain()
-
-        if self.unprotect:
-            # Get Mid
-            mid = self.bootItf.GetFlashMID()
-            # print("\n\n mid: {:x}\n\n".format(mid))
-            if self._Do_Boot_ProtectFlash(mid, True) != 1:
-                self.log("Unprotect Failed")
-                return
-            # unprotect flash first
-
+        self.log("Erasing")
         self.pbar.update(99)
         self.bootItf.EraseAllFlash()
 
         if self.unprotect:
-            self._Do_Boot_ProtectFlash(mid, False)
+            self._Do_Boot_ProtectFlash(self._mid, False)
         self.log("Chip Erase Done")
         self.pbar.update(1)
 
-        for i in range(3):
+        for _ in range(3):
             time.sleep(0.01)
             self.bootItf.SendReboot()
 
         self.pbar.close()
+        self.pbar = None
 
 if __name__ == '__main__':
     downloader = UartDownloader()

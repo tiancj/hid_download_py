@@ -1,52 +1,5 @@
 #!/usr/bin/env python3
-# encoding: utf8
-#
-# HID Download Tool
-#
-# Copyright (c) BekenCorp. (chunjian.tian@bekencorp.com).  All rights reserved.
-#
-# This software may be distributed under the terms of the BSD license.
-# See README for more details.
+from bkutil.cli.uartreader import main
 
-import argparse
-import os
-import sys
-from bkutil import UartFlashReader
-
-# parse commandline arguments
-def parse_args():
-    description = '''Beken Uart Flash Reader.'''
-    parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('-d', '--device',
-                        default='/dev/ttyUSB0',
-                        help="Uart device, defaults to /dev/ttyUSB0")
-    parser.add_argument('-s', '--startaddr', type=lambda x: int(x, 16),
-                        default=0,
-                        help="read flash address, defaults to 0")
-    parser.add_argument('-l', '--readlength', type=lambda x: int(x, 16),
-                        default=0x200000,
-                        help="read flash count in bytes, defaults to 2M Bytes")
-    parser.add_argument('-b', '--baudrate', type=int,
-                        default=1500000,
-                        help="uart baudrate, defaults to 1500000")
-    parser.add_argument('filename',
-                        help='Specify file to dump flash into')
-    args = parser.parse_args()
-
-    return args
-
-args = parse_args()
-
-if not os.path.exists(args.device):
-    print(f"Device {args.device} doesn't exist")
-    sys.exit(-1)
-
-if os.path.exists(args.filename):
-    ans = input(f"Device {args.filename} already exist, overwrite? [Y/n] ")
-    if ans == 'n' or ans == 'N':
-        sys.exit(0)
-
-
-reader = UartFlashReader(args.device, args.baudrate)
-with open(args.filename, 'wb') as fs:
-    fs.write(reader.readflash(args.startaddr, args.readlength))
+if __name__ == '__main__':
+    main()
