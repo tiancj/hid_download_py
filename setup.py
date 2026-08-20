@@ -11,6 +11,6 @@ setup(name="hid_downloader",
     license="MIT",
     requires=["hid", "pyserial", "tqdm"],
     platforms=["Windows", "GNU/Linux", "Darwin"],
-    packages=['bkutils', 'bkutils/chip'],
+    packages=['bkutil', 'bkutil/chip'],
     scripts=['hidprogram', 'uartprogram', 'uartreader'])
 

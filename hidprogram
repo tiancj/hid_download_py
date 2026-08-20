@@ -11,17 +11,17 @@
 import sys
 import os
 import argparse
-import bkutils
+import bkutil
 import hid
 import threading
 
 chip_map = {
-    "bk7231": bkutils.CHIP_TYPE_BK7231,
-    "bk7231s": bkutils.CHIP_TYPE_BK7231U,
-    "bk7231u": bkutils.CHIP_TYPE_BK7231U,
-    "bk7231n": bkutils.CHIP_TYPE_BK7231U,
-    "bk7221u": bkutils.CHIP_TYPE_BK7221U,
-    "bk7251": bkutils.CHIP_TYPE_BK7251,
+    "bk7231": bkutil.CHIP_TYPE_BK7231,
+    "bk7231s": bkutil.CHIP_TYPE_BK7231U,
+    "bk7231u": bkutil.CHIP_TYPE_BK7231U,
+    "bk7231n": bkutil.CHIP_TYPE_BK7231U,
+    "bk7221u": bkutil.CHIP_TYPE_BK7221U,
+    "bk7251": bkutil.CHIP_TYPE_BK7251,
 }
 
 # parse commandline arguments
@@ -73,7 +73,7 @@ if not spi_device_paths:
 
 # run hid in seperate thread
 def hid_download_thread(index, path):
-    downloader = bkutils.HidDownloader(chip_map[chip_type], spi_mode, path=path, extra=index)
+    downloader = bkutil.HidDownloader(chip_map[chip_type], spi_mode, path=path, extra=index)
     downloader.Download(filename)
 
 threads = []

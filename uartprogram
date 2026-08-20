@@ -11,7 +11,7 @@
 import sys
 import os
 import argparse
-from bkutils import UartDownloader
+from bkutil import UartDownloader
 import os
 
 # parse commandline arguments
