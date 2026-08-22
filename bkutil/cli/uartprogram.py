@@ -1,0 +1,63 @@
+#!/usr/bin/env python3
+# encoding: utf8
+#
+# HID Download Tool
+#
+# Copyright (c) BekenCorp. (chunjian.tian@bekencorp.com).  All rights reserved.
+#
+# This software may be distributed under the terms of the BSD license.
+# See README for more details.
+
+import sys
+import os
+import argparse
+from bkutil import UartDownloader
+
+
+def parse_args():
+    description = '''Beken Uart Downloader.'''
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument('-d', '--device',
+                        default='/dev/ttyUSB0',
+                        help="Uart device, default to /dev/ttyUSB0")
+    parser.add_argument('-s', '--startaddr', type=lambda  x: int(x, 16),
+                        default=0x11000,
+                        help="burn flash address, defaults to 0x11000")
+    parser.add_argument('-b', '--baudrate', type=int,
+                        default=2000000,
+                        help="burn uart baudrate, defaults to 2000000")
+    parser.add_argument('-u', '--unprotect', action="store_true",
+                        help="unprotect flash first, used by BK7231N")
+    parser.add_argument('-e', '--erase', action='store_true',
+                        help="Erase chip")
+    parser.add_argument('filename', nargs='?',
+                        help='specify file_crc.bin if -e is not provided')
+    args = parser.parse_args()
+
+    return args
+
+
+def main():
+    args = parse_args()
+
+    if not os.path.exists(args.device):
+        print(f"Device {args.device} doesn't exist")
+        sys.exit(-1)
+
+    if not args.erase:
+        if not args.filename:
+            print(f"filename must be specified, use -h for help")
+            sys.exit(-1)
+        if not os.path.exists(args.filename):
+            print(f"File {args.filename} doesn't exist")
+            sys.exit(-1)
+
+    downloader = UartDownloader(args.device, args.baudrate, args.unprotect)
+    if args.erase:
+        downloader.chip_erase()
+    else:
+        downloader.programm(args.filename, args.startaddr)
+
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hid_downloader"
+version = "1.0"
+description = "HID Download tool"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [
+    { name = "tiancj", email = "cj.tian.seu@gmail.com" }
+]
+requires-python = ">=3.8"
+dependencies = [
+    "hidapi",
+    "pyserial",
+    "tqdm",
+]
+
+[project.urls]
+Homepage = "https://github.com/tiancj"
+
+[project.scripts]
+uartprogram = "bkutil.cli.uartprogram:main"
+hidprogram = "bkutil.cli.hidprogram:main"
+uartreader = "bkutil.cli.uartreader:main"
+
+[tool.setuptools.packages.find]
+include = ["bkutil*"]
+
